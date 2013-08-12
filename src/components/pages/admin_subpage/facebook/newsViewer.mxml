@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- Komponent służący do wyświetlania postów -->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+		 creationComplete="appInit()">
+	<fx:Declarations>
+		
+		<!--- Usługa PHP do pobierania postów z bazy danych	-->
+		<mx:HTTPService id="pobieraniePostowDB"
+						useProxy="false"
+						method="POST"
+						result="pobieraniePostowDB_resultHandler(event)"
+						fault="pobieraniePostowDB_faultHandler(event)">
+		</mx:HTTPService>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+								
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.Button;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			private var posty:ArrayCollection = new ArrayCollection();
+			private var linki:Array = [];
+			
+			private function appInit():void{
+				pobieraniePostowDB.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"/getPostsFromDB.php";
+				pobieraniePostowDB.send();
+			}
+			
+		
+			private function pobieraniePostowDB_resultHandler(ev:ResultEvent):void{
+				var names:ArrayCollection = new ArrayCollection();
+				posty = ev.result.root.post;
+				//byłem zmuszony dodać jeden pusty post, zeby arrayCollection wczytalo, teraz go usuwam
+				if (posty.length==2 && posty[1].id==null){
+					posty.removeItemAt(1);
+				}
+				viewPosts();
+			}
+			
+			private function pobieraniePostowDB_faultHandler(ev:FaultEvent):void{
+				Alert.show(ev.fault.faultString,"Fault during getting posts from DB");
+			}
+			
+			private function viewPosts():void{
+				for (var i:int=0;i<posty.length;i++){
+					var p:postComponent = new postComponent();
+					//p.namePost.text = posty[i].name;
+					p.panel.title = posty[i].name;
+					p.messagePost.text = posty[i].message;
+					if (posty[i].description!=null)
+					{
+						p.descriptionPost.text = posty[i].description;
+					}
+					else
+					{
+						p.newLine9.text="";
+						p.newLine10.text="";
+					}
+					if (posty[i].picture!=null){
+						p.img.source = posty[i].picture;
+						p.img.visible=true;
+					}
+					if (posty[i].link!=null){
+						//uzupelniam tablice elementami linkelement i dodaje do nich listenery
+						p.linkEl.href = posty[i].link;
+						p.spanEl.text = posty[i].link;
+					}
+					else
+					{
+						p.newLine5.text="";
+						p.newLine6.text="";
+						p.newLine7.text="";
+						p.newLine8.text="";
+					}
+					if (posty[i].articleId!=null){
+						p.linkEl.href = posty[i].articleId;
+						p.spanEl.text = "Go to article";
+					}
+					elementy.addElement(p);
+					}
+				elementy.validateNow();
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<s:VGroup horizontalAlign="center" id="elementy"  gap="50" width="100%"/>
+</s:Group>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- Element pokazujący pgalerię zdjęć, pożyczony ze strony: http://blog.flexexamples.com/2008/02/15/creating-a-simple-image-gallery-with-the-flex-horizontallist-control/ -->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%"
+		 initialize="init();"
+		 >
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			private var alert:Alert;
+			[Bindable]
+			private var path:String;
+		
+		protected var myXML:XML = new XML();
+
+		/**
+		 * Inicjalizujemy - pobieramy ścieżkę do strony.q
+		 */
+		protected function init():void
+		{
+			path = FlexGlobals.topLevelApplication.getImgPath();
+		}
+		
+		/**
+		 * Ustawiamy XML z labelami, i umiejscowieniem zdjęć i ich miniatur - w formie XMLa.
+		 */	
+		public function setGallery(zewnetrzneXML:XML):void
+		{
+			myXML = zewnetrzneXML.copy();
+			var xmlList:XMLList = myXML.node;
+			xmlListColl = new XMLListCollection(xmlList);
+		}
+			
+		/**
+		 * Ustawiamy XML z labelami, i umiejscowieniem zdjęć i ich miniatur - w formie XMLList.
+		 */	
+		public function setGalleryXMLListCollection(zewnetrzneXMLColl:XMLListCollection):void
+		{
+				xmlListColl = zewnetrzneXMLColl;
+		}
+
+		]]>
+		
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		
+		
+		<mx:XMLListCollection id="xmlListColl" />
+		
+		<s:Resize id="change"/>
+		
+
+	</fx:Declarations>
+	<mx:Panel title="{horizontalList.selectedItem.label}"
+			  height="100%"
+			  horizontalAlign="center"
+			  verticalAlign="middle" textAlign="center" horizontalCenter="0"
+			  resizeEffect="change">
+		
+		<mx:Image id="img"
+				  source="{path+horizontalList.selectedItem.fullImage}"
+				  maintainAspectRatio="true"
+				  horizontalAlign="center"
+				  width="100%"
+				  height="100%"
+				  
+				  />
+		<mx:ControlBar horizontalAlign="center">
+			<mx:HorizontalList id="horizontalList"
+							   labelField="label"
+							   iconField="thumbnailImage"
+							   dataProvider="{xmlListColl}"
+							   itemRenderer="components.pages.admin_subpage.gallery.CustomItemRenderer"
+							   columnCount="4"
+							   columnWidth="125"
+							   rowCount="1"
+							   rowHeight="100"
+							   horizontalScrollPolicy="on" 
+							   />
+		</mx:ControlBar>
+	</mx:Panel>
+	
+</s:Group>
+

@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:flash="flash.media"
+		 width="100%" height="100%"
+		 creationComplete="LiveVideoInitilize(event)"
+		 verticalAlign="middle"
+		 horizontalAlign="center"
+		 resize="mainResizeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import data.*;
+			import data.Medium;
+			
+			import flash.media.Video;
+			import flash.net.NetConnection;
+			import flash.net.NetStream;
+			
+			import flashx.textLayout.tlf_internal;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.rpc.AbstractOperation;
+			import mx.rpc.events.*;
+			import mx.rpc.soap.*;
+			import mx.utils.*;
+			import mx.utils.object_proxy;
+			
+			import org.osmf.net.NetClient;
+			import org.osmf.net.dynamicstreaming.DynamicStreamingResource;
+			
+			import services.roomservice.*;
+			import services.userservice.*;
+			
+			import spark.components.mediaClasses.DynamicStreamingVideoItem;
+			import spark.components.mediaClasses.DynamicStreamingVideoSource;
+			
+			import valueObjects.Sessiondata;
+			
+			private var ncCamera:NetConnection;
+			private var ncDesktop:NetConnection;
+			private var httpServer = "http://";
+			private var rtmpServer = "rtmp://";
+			public var serverURL = "192.168.1.7";
+			public var serverRTMPPort = "1935";
+			public var serverHTTPPort = "5080";
+			public var serverFolder = "openmeetings";
+			public var roomIDDesktop = "2";
+			public var roomIDCamera = "1";
+			private var nsDesktop:NetStream;
+			private var vidDesktop:Video;
+			private var nsCamera:NetStream;
+			private var vidCamera:Video;
+			public var Id:String;
+			
+			private var cameraIsInitialized:Boolean;
+			private var desktopIsInitialized:Boolean;
+			
+			
+		//	private var uUserServiceWebService:WebService;
+		//	private var uRoomServiceWebService:WebService;
+			
+			
+			//todo remove true credentials
+			private var sessionIDCamera:String;
+			private var sessionIDDesktop:String;
+			public var userName:String = "Thomas";
+			public var password:String = "heroes";
+			private var lastOperation:String;
+			private var streamDestkopPublishName:String = "";
+			private var videoDesktopHeight:int;
+			private var videoDesktopWidth:int;
+			private var streamCameraPublishName:String = "";
+			private var videoCameraHeight:int;
+			private var videoCameraWidth:int;
+			private var meta:Object;
+			//CallService_btn.addEventListener(MouseEvent.CLICK, InitWebService);
+			
+			
+			private function InitWebService():void
+			{				
+				var uRoomServiceWebServiceCamera = new WebService();
+				var RoomServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/RoomService?wsdl";
+				uRoomServiceWebServiceCamera.loadWSDL(RoomServiceURL);
+
+				var uUserServiceWebServiceCamera = new WebService();
+				//we are loading CAMERA and DESKTOP in different connections - onlhy one stream per connection is allowed
+				uUserServiceWebServiceCamera.addEventListener(LoadEvent.LOAD,  function (e:LoadEvent):void
+				{
+					BuildServiceRequest(Medium.CAMERA,uUserServiceWebServiceCamera,uRoomServiceWebServiceCamera);
+				});
+				var UserServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/UserService?wsdl";
+				uUserServiceWebServiceCamera.loadWSDL(UserServiceURL);	
+				
+				/////////////////////////////////
+				
+				var uRoomServiceWebServiceDesktop = new WebService();
+				//var RoomServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/RoomService?wsdl";
+				uRoomServiceWebServiceDesktop.loadWSDL(RoomServiceURL);
+				
+				var uUserServiceWebServiceDesktop = new WebService();
+				//we are loading CAMERA and DESKTOP in different connections - onlhy one stream per connection is allowed
+				uUserServiceWebServiceDesktop.addEventListener(LoadEvent.LOAD,  function (e:LoadEvent):void
+				{
+					BuildServiceRequest(Medium.DESKTOP,uUserServiceWebServiceDesktop,uRoomServiceWebServiceDesktop);
+				});
+			//	var UserServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/UserService?wsdl";
+				uUserServiceWebServiceDesktop.loadWSDL(UserServiceURL);	
+			}
+			
+			private function BuildServiceRequest(medium:Medium,UserService:WebService,RoomService:WebService):void
+			{
+				var serviceOperation:AbstractOperation;
+				serviceOperation = UserService.getOperation("getSession");
+				if(!serviceOperation.hasEventListener(ResultEvent.RESULT))
+				{
+					serviceOperation.addEventListener(FaultEvent.FAULT, DisplayError);
+					serviceOperation.addEventListener(ResultEvent.RESULT, function (e:ResultEvent):void
+					{
+						trace("getSessionResult");
+						GetSessionResult(medium,e,UserService,RoomService);
+					});
+				}
+				serviceOperation.send();
+			}
+			
+			private function DisplayError(evt:FaultEvent):void
+			{
+				throw evt.toString();
+			}
+			
+			//start of websession functions receivers
+			
+			private function GetSessionResult(medium:Medium,evt:ResultEvent,UserService:WebService,RoomService:WebService)
+			{
+				var Result:Object = evt.result;
+				var sessionID:String = "";
+				
+				if(Result == null)
+				{
+					throw "Error - liveVideo::getSession() - returned NULL object";
+				}
+				else
+				{
+					switch(medium)
+					{
+						case Medium.CAMERA:
+							this.sessionIDCamera = Result.session_id;
+							sessionID = this.sessionIDCamera;
+						break;
+						
+						case Medium.DESKTOP:
+							this.sessionIDDesktop = Result.session_id;
+							sessionID = this.sessionIDDesktop;
+						break;
+					}
+				}
+				
+				var serviceOperation:AbstractOperation;
+				serviceOperation = UserService.getOperation("loginUser");
+				
+				
+				if(serviceOperation != null)
+				{
+					//checking if there is
+					if(!serviceOperation.hasEventListener(ResultEvent.RESULT))
+					{
+						serviceOperation.addEventListener(FaultEvent.FAULT, DisplayError);
+						serviceOperation.addEventListener(ResultEvent.RESULT, function (e:ResultEvent):void
+						{
+							CheckLoginUser(sessionID,medium,e,UserService,RoomService)
+						});
+					}
+					serviceOperation.send(sessionID,this.userName, this.password);
+				}
+				else
+				{
+					throw "There is no operation loginUser taken from wsdl file in server";
+				}
+			}
+			
+			private function CheckLoginUser(sessionID:String, medium:Medium, event:ResultEvent,UserService:WebService, RoomService:WebService)
+			{
+				var result:int = event.result as int;
+				if (this.CheckIfNotError(sessionID,result,UserService))
+				{
+					var serviceOperation:AbstractOperation;
+					serviceOperation = RoomService.getOperation("getRoomWithCurrentUsersById");
+					
+					if(!serviceOperation.hasEventListener(ResultEvent.RESULT))
+					{
+						serviceOperation.addEventListener(FaultEvent.FAULT, DisplayError);
+						serviceOperation.addEventListener(ResultEvent.RESULT, function (e:ResultEvent):void
+						{
+							GetRoomUsers(medium,e,RoomService);
+						});	
+					}
+					
+					switch(medium)
+					{
+						case Medium.CAMERA:
+							
+							trace("send camera");
+							serviceOperation.send(sessionID,parseInt(roomIDCamera));
+							break;
+						case Medium.DESKTOP:
+							
+							trace("sends rest");
+							serviceOperation.send(sessionID,parseInt(roomIDDesktop));
+							break;
+					}
+				}
+			}
+			
+			private function GetRoomUsers(medium:Medium,evt:ResultEvent,RoomService:WebService)
+			{
+				var Result:Object = evt.result;
+				if(Result == null)
+				{
+					throw "Error - liveVideo - returned NULL object";
+				}
+				else
+				{
+					//get list of users
+					var listUsers:ArrayCollection;
+					
+					listUsers = Result.currentusers;
+					
+					if(listUsers != null)
+					{
+						for each (var obj:Object in listUsers)
+						{
+							if(obj.screenPublishStarted == true && medium == Medium.DESKTOP)
+							{
+								this.streamDestkopPublishName = obj.streamPublishName;	
+								this.videoDesktopWidth = obj.VWidth;
+								this.videoDesktopHeight = obj.VHeight;
+							}
+							
+							if(obj.avsettings=="av" && obj.usersetting != "" && medium == Medium.CAMERA)
+							{
+								this.streamCameraPublishName = obj.broadCastID;
+								this.videoCameraWidth = obj.VWidth;
+								this.videoCameraHeight = obj.VHeight;
+							}
+						}
+						
+						if(this.streamDestkopPublishName != null)
+						{
+							trace ("init player");
+							initPlayer(medium);
+						}
+					}
+					else
+					{
+						throw "No video stream in OpenMeetings";
+					}
+				}
+			}
+			
+			//we are getting error if one of communication returned minus ID
+			private function CheckIfNotError(sessionID:String,result:int,UserService:WebService)
+			{
+				if(result>0)
+				{
+					return true;
+				}
+				else
+				{
+					var serviceOperation:AbstractOperation;
+					serviceOperation = UserService.getOperation("getErrorByCode");
+					if(!serviceOperation.hasEventListener(ResultEvent.RESULT))
+					{
+						serviceOperation.addEventListener(FaultEvent.FAULT, DisplayError);
+						serviceOperation.addEventListener(ResultEvent.RESULT, DisplayErrorByCode);
+					}
+					
+					//sessionID, errorId, IDofLanguage
+					serviceOperation.send(sessionID,result,1);
+					return false;
+				}
+			}
+			
+			public function newRed5ScreenCursor(obj:Object):void
+			{
+				//TODO - show cursor
+				return;
+			}
+			
+			private function DisplayErrorByCode(event:ResultEvent)
+			{
+				throw "ERROR: operation " + lastOperation + "returned error: " + event.toString();
+			}
+
+			protected function LiveVideoInitilize(event:FlexEvent):void
+			{
+				this.cameraIsInitialized = false;
+				this.desktopIsInitialized = false;
+				this.InitWebService();
+			}
+			
+			///////////////////////////////////////////////////////
+			////TODO VIDEO below
+			/////////////////////////////////////////////////////////
+			
+			
+			private var intervalMonitorBufferLengthEverySecond:uint;
+			
+			private function initPlayer(medium:Medium):void
+			{
+				trace ("initPlayer");
+				//we check if both medium(CAMERA/DESKTOP) were initialized
+				switch(medium)
+				{
+					case Medium.CAMERA:
+						this.cameraIsInitialized = true;
+						netConnectionInit(medium,ncCamera);
+					break;
+					
+					case Medium.DESKTOP:
+						this.desktopIsInitialized = true;
+						netConnectionInit(medium,ncDesktop);
+					break;
+				}
+			}
+			
+			private function netConnectionInit(medium:Medium,nc:NetConnection):void
+			{
+				//trace("netConnectionInit");
+				nc = new NetConnection();
+				
+				if(!nc.hasEventListener(NetStatusEvent.NET_STATUS))
+				{
+					nc.addEventListener(NetStatusEvent.NET_STATUS, function (e:NetStatusEvent):void
+					{
+						onNetStatus(nc,medium,e);
+					});	
+					nc.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+				}
+				nc.client=this;
+				var rtmpServerURL:String = rtmpServer+serverURL + ":" + serverRTMPPort + "/" + serverFolder + "/";
+				
+				switch(medium)
+				{
+					case Medium.DESKTOP:
+						rtmpServerURL += roomIDDesktop;
+						break;
+					case Medium.CAMERA:
+						rtmpServerURL += roomIDCamera;
+						break;
+					default:
+					break;
+				}
+				nc.connect(rtmpServerURL);
+			}
+			
+			public function onBWCheck(... rest):Number { 
+				return 0; 
+			} 
+			public function onBWDone(... rest):void { 
+				var p_bw:Number; 
+				if (rest.length > 0) p_bw = rest[0]; 
+				// your application should do something here 
+				// when the bandwidth check is complete 
+				trace("bandwidth = " + p_bw + " Kbps."); 
+			}  
+			
+			public function setId(newID:String):void
+			{
+				id = newID;
+			}
+			
+			
+			function onNetStatus(nc:NetConnection,medium:Medium,event:NetStatusEvent):void 
+			{
+				switch (event.info.code) 
+				{
+				case "NetConnection.Connect.Success":
+					{	
+					
+						switch(medium)
+						{
+							case Medium.DESKTOP:
+							{								
+								//DESKTOP settings initialization
+								nsDesktop=new NetStream(nc);
+								
+								vidDesktop = new Video();
+								if(!nsDesktop.hasEventListener(AsyncErrorEvent.ASYNC_ERROR))
+								{
+									nsDesktop.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+								}
+								
+								vidDesktop.attachNetStream(nsDesktop);
+								this.setSizeDesktop(this.videoDesktopWidth,this.videoDesktopHeight);
+								nsDesktop.bufferTime = 1;
+								
+								uic.addChild(vidDesktop);
+								nsDesktop.play(this.streamDestkopPublishName);		
+								vidDesktop.z = 0;
+								break;
+							}
+							
+							case Medium.CAMERA:
+							{
+								//CAMERA settings
+								nsCamera=new NetStream(nc);
+								
+								vidCamera = new Video();
+								
+								if(!nsCamera.hasEventListener(AsyncErrorEvent.ASYNC_ERROR))
+								{
+									nsCamera.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+								}
+								
+								vidCamera.attachNetStream(nsCamera);
+								this.setSizeCamera(this.videoCameraWidth,this.videoCameraHeight);
+								nsCamera.bufferTime = 1;
+								
+								uic.addChild(vidCamera);
+								nsCamera.play(this.streamCameraPublishName);
+								vidCamera.x = this.videoDesktopWidth;
+								vidCamera.z = 10;
+								break;
+							}
+						}
+						
+						//if(this.cameraIsInitialized && this.desktopIsInitialized)
+						//{
+							uic.height = this.videoDesktopHeight + this.videoCameraHeight;
+					//	}
+					}		
+				break;
+				case "NetConnection.Connect.Failed" :
+				case "NetConnection.Connect.Rejected" :
+					throw "The connection was rejected";
+				break;
+				case "NetStream.Play.Stop" :
+					trace("The stream has finished playing");
+				break;
+				case "NetStream.Play.StreamNotFound" :
+					throw "The server could not find the stream you specified, stream: "+streamDestkopPublishName;
+				break;
+				case "NetStream.Publish.BadName" :
+					throw "The stream name is already used";
+				break;
+				}
+			}
+			
+			public function sendVarsToMessage(... client):void
+			{
+				return;
+			}
+			
+			function setSizeCamera(width:int,height:int):void 
+			{
+				if(width > 0 && height > 0)
+				{
+					trace("setSize");
+					// Resize Video object to same size as meta data.
+					vidCamera.width = width;
+					vidCamera.height = height;
+					// Resize UIComponent to same size as Video object.
+					//TODO change
+					//uic.width = vidCamera.width;
+					//uic.height = vidCamera.height;
+					panel.visible = true;
+					this.validateNow();
+					trace(width + "; " + height);
+				}
+				else
+				{
+					throw "Null size of live video";
+				}
+			}
+			
+			function setSizeDesktop(width:int,height:int):void 
+			{
+				if(width > 0 && height > 0)
+				{
+					trace("setSize");
+					// Resize Video object to same size as meta data.
+					vidDesktop.width = width;
+					vidDesktop.height = height;
+					// Resize UIComponent to same size as Video object.
+					//todo change
+					//uic.width = vidDesktop.width;
+					//uic.height = vidDesktop.height;
+					panel.visible = true;
+					this.validateNow();
+					trace(width + "; " + height);
+				}
+				else
+				{
+					throw "Null size of Desktop live video";
+				}
+			}
+			
+			public function onCuePoint(item:Object):void {
+				
+				trace("cue: "+ObjectUtil.toString(item));
+			}
+			
+			function asyncErrorHandler(event:AsyncErrorEvent):void {
+				throw event.text;
+			}
+			
+			function roomDisconnect(... item):void
+			{
+				trace("room disconnected");
+				return;
+			}
+			
+			function closeStream (... item):void
+			{
+				trace("stream closed");
+				return;
+			}
+			
+			public var stopScreenSharingMessage:Object;
+			public var sendSyncCompleteFlag:Object;
+			
+
+			protected function mainResizeHandler(event:ResizeEvent):void
+			{
+				trace("Resize");
+				panel.validateDisplayList();
+				panel.validateNow();
+				
+				//var ratio:double = this.videoDesktopWidth / this.videoDesktopHeight;
+				if(this.vidDesktop != null)
+				{
+					//TODO zachownie ratio przy zmianie
+					this.vidDesktop.height = 0.8 * this.panel.height;
+					this.vidDesktop.width = 0.8 * this.panel.width;
+					this.vidDesktop.x = 0.1 * this.panel.width;
+					this.vidDesktop.y = 0.1 * this.panel.height
+					this.vidCamera.x = 0.05 * this.panel.width;
+					this.vidCamera.y = 0.05 * this.panel.height;
+					this.vidCamera.z = 10;
+					
+					this.uic.validateDisplayList();
+					this.uic.validateNow();
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<mx:Panel width="100%" height="100%" id="panel" verticalAlign="middle" horizontalAlign="center" headerHeight="0">
+		<mx:UIComponent id="uic" width="100%" height="100%"  />			
+	</mx:Panel >
+</s:VGroup>

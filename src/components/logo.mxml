@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+ Plik odpowiedzialny za wyświetlenie logo na gorze strony.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<!---
+		'Obramowanie' tekstu, zawierające tło pobrane z pliku bg.jpg
+	-->
+	<s:BorderContainer id="brdr"
+		backgroundImage="@Embed('/assets/bg.jpg')"
+			  borderWeight="3"
+			  width="100%"			  
+			  horizontalCenter="0" verticalCenter="0" borderVisible="false">
+		<!---
+			Element z głównym elementem tytułowym - nazwą 'Bioserver'.
+		-->
+
+			<mx:Image x="10" y="10" source="@Embed('/assets/logotype.png')"/>
+			<s:Label x="60" y="20" color="#ffffff" text="Bioserver" id="text" fontSize="70" fontWeight="bold" height="106"/>
+		
+		
+		<!--- 
+			Element z tekstem uzupelniającym logo.
+		-->
+		<s:Label x="66" y="83" color="#ffffff" text="computational    biology    server" id="subtext" fontSize="22"/>
+	</s:BorderContainer>
+</s:Group>

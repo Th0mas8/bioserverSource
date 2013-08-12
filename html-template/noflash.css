@@ -1,0 +1,131 @@
+/* CSS file For Flex Deep Linking And SEO Non-Flash Version */
+body
+{
+background-color:#000000;	
+}
+
+a 
+{
+	text-decoration:none;
+	color:#69e778;
+}
+
+a:hover,a:focus
+{
+	text-decoration:none;
+	color:#fbee23;;
+}
+
+#flashContent  
+{
+	display:block;
+	height:100%;
+	margin-left:auto;
+	margin-right:auto;
+	width:1008px;
+}
+
+img 
+{
+	margin:10px;
+	float:right;
+}
+
+#noflash
+{
+	font-size:10px;	
+}
+
+#flashgif 
+{
+	height:100%;
+	left:0;
+	margin-bottom:60px;
+	position:relative;
+	width:100%;
+}
+
+#flashgif img
+{
+	float:left;
+	margin-left:40%;
+}
+
+#con{
+	
+	float:left;
+	margin:30px;
+	font-size:20px;
+}
+
+#alt_content
+{
+	
+
+}
+
+#title
+{
+	background-image:url(../assets/header.jpg);
+	font-size:30px;
+	height:160px;
+	margin-bottom:15px;
+	text-align:center;
+	width:1008px;
+}
+
+
+#menu_div
+{
+
+	-moz-background-clip:border;
+	-moz-background-inline-policy:continuous;
+	-moz-background-origin:padding;
+	background:transparent url(images_menu/menu_m.png) repeat-x scroll 0 0;
+	color:#646464;
+	font-family:"Trebuchet MS",Verdana,Arial,Helvetica,sans-serif;
+	font-size:20px;
+	left:100px;
+	line-height:150%;
+	margin-left:0;
+	position:relative;
+	top:0;
+}
+
+
+ul.menu li
+{
+	display: inline;
+	padding: 5px 10px 5px 10px;
+}
+
+ul.menu {
+	float:left;
+	list-style-image:none;
+	list-style-position:outside;
+	list-style-type:none;
+	margin:0;
+	padding:0;
+	position:relative;
+	z-index:2;
+}
+
+
+ul.menu a
+{
+	text-decoration:none; color: blue;
+}
+
+ul.menu li  a:hover
+{
+	color:#d972ff;
+  background: #000000;
+}
+
+ul.menu li a
+{
+	text-decoration:none; 
+	background:#0F1A89 none repeat scroll 0 0;
+	color:#FFFFFF;
+}
+

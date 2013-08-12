@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie pokolei elementów i dodanie ich do group.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%"
+		 creationComplete="appInit()" resize="group1_resizeHandler(event)"
+		 
+		 >
+	
+	<fx:Metadata>
+		[Event(name="idChanged", type="myEvents.IDLinkEvent")]
+	</fx:Metadata>
+	
+	<fx:Style>
+		@namespace mx "library://ns.adobe.com/flex/halo";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		
+		#tt {
+			border-alpha: 0;
+			padding-left: 20;
+			padding-right: 20;
+			padding-bottom: 20;
+			padding-top: 20;
+		}
+	</fx:Style>
+	
+	<fx:Declarations>
+		<!---
+		Ten komponent ściągnie z bazy danych informacje o wszystkich komponentach do wyświetlania w danym artykule/stronie
+		-->
+		<mx:HTTPService id="pobieranieElementow"  
+						useProxy="false" 
+						method="POST"
+						result="pobieranieElementow_resultHandler(event)"
+						fault="pobieranieElementow_faultHandler(event)"
+						resultFormat="e4x">
+			
+			
+			<mx:request xmlns="">
+				<id>{idArt.text}</id>
+			</mx:request>
+		</mx:HTTPService>
+		
+		
+		<!--- Komponent który jest potrzebny aby przekazać wartość wybranego id Artykułu do skryptu php i pobrania z bazy danych. -->
+		<mx:Label id="idArt"/>
+		<!--- Lista xml ktorą dostajemy z serwera, opisuje elementy w artykule. -->
+		<mx:XMLListCollection id="xmlListColl" />
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.bytesol.components.IPCam;
+			import com.devaldi.events.DocumentLoadedEvent;
+			
+			import components.pages.admin_subpage.PDFViewer.PDFElement;
+			import components.pages.admin_subpage.Video.MJPG;
+			import components.pages.admin_subpage.Video.MJPGElement;
+			import components.pages.admin_subpage.Video.MJPGTest;
+			import components.pages.admin_subpage.Video.VideoJukeBox;
+			import components.pages.admin_subpage.Video.VideoStreamMJPEG;
+			import components.pages.admin_subpage.Video.Video_stream;
+			import components.pages.admin_subpage.email.contactEmail;
+			import components.pages.admin_subpage.facebook.newsViewer;
+			import components.pages.admin_subpage.gallery.galleryItem;
+			import components.pages.search.searchViewer;
+			
+			import flash.net.navigateToURL;
+			import flash.text.engine.TextBlock;
+			import flash.text.engine.TextLine;
+			import flash.utils.setTimeout;
+			
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.elements.FlowElement;
+			import flashx.textLayout.elements.FlowGroupElement;
+			import flashx.textLayout.elements.InlineGraphicElement;
+			import flashx.textLayout.elements.LinkElement;
+			import flashx.textLayout.elements.TextFlow;
+			import flashx.textLayout.events.FlowElementMouseEvent;
+			import flashx.textLayout.events.StatusChangeEvent;
+			import flashx.textLayout.formats.TextDecoration;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import flashx.textLayout.formats.WhiteSpaceCollapse;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.Image;
+			import mx.controls.Text;
+			import mx.controls.TextArea;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.FlexGlobals;
+			import mx.core.IVisualElement;
+			import mx.core.mx_internal;
+			import mx.effects.Pause;
+			import mx.effects.easing.Elastic;
+			import mx.events.BrowserChangeEvent;
+			import mx.events.DragEvent;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.BrowserManager;
+			import mx.managers.CursorManager;
+			import mx.managers.HistoryManager;
+			import mx.managers.IBrowserManager;
+			import mx.managers.IHistoryManagerClient;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+			
+			import myEvents.IDLinkEvent;
+			
+			import org.osmf.html.HTMLElement;
+			import org.osmf.image.ImageElement;
+			
+			import spark.components.RichText;
+			import spark.components.TextArea;
+			import spark.utils.TextFlowUtil;
+			
+			private var myXML:XML = new XML();
+			private var xmlList:XMLList = new XMLList();
+			private var segments:ArrayCollection = new ArrayCollection();
+			private var articleId:int;
+			private var urls:Array = new Array();
+			
+		//	private var browserManager:IBrowserManager;
+			
+			private var linksArray:Array = [];
+			
+		//	private var historia:IHistoryManagerClient;
+			
+			/**
+			 * Przekazujemy z zewnątrz całą XMLową budowę menu - żeby mieć dostęp do nazwy danego artykułu w przypadku gdy mamy tylko jego ID
+			 */
+			public var menuXML:XMLList = new XMLList();
+
+			
+			/**
+			 * Inicjalizacja komponenty, tutaj tworzymy adres 
+			 */
+			private function appInit():void{
+				//ustawiamy adres z którego będziemy pobierali skrypt - główna ściezka jest ukryta wyżej żeby umozliwić przenoszneie między stronami
+				pobieranieElementow.url = FlexGlobals.topLevelApplication.getPHPScriptsPath() + "pobElemZArtykulu.php";
+				
+				
+		/*		browserManager = BrowserManager.getInstance();
+				browserManager.addEventListener(
+					BrowserChangeEvent.BROWSER_URL_CHANGE,
+					parseUrl
+				)
+				browserManager.addEventListener(BrowserChangeEvent.APPLICATION_URL_CHANGE, appChange);
+				browserManager.init("");
+				parseUrl();*/
+			//	HistoryManager.register(this);
+			}
+			
+			
+
+
+			
+			public var effectsPlaying:Boolean = false;
+		//	private var menuLeweVisible:Boolean;
+			private var pasekAdresuVisible:Boolean;
+			private var pasekAdresu:String;
+			public var aktualneID:String = "15";
+			
+			/*
+			//do historii load state i save state
+			public function loadState(state:Object):void
+			{
+				// First, check to see if state is null. When the app is reset
+				// back to its initial state, loadState() is passed null.
+				if (state == null)
+				{
+					setArticleID("15");
+				}
+				else
+				{
+					setArticleID(state.ID);
+				}
+			}
+			
+			public function saveState():Object
+			{
+				var state:Object = {};
+				
+				state.ID = aktualneID;
+				
+				return state;
+			}*/
+/*
+			private function updateUrl():void
+			{
+				browserManager.setFragment("a=" + aktualneID);
+			}
+
+			
+			private function appChange(e:BrowserChangeEvent = null):void
+			{
+				Alert.show(browserManager.fragment+'\nappchange');*/
+			/*	if(browserManager.fragment==null)
+				{
+					//	Alert.show("NULL po #");
+				}
+				else
+				{
+					var o:Object = URLUtil.stringToObject(browserManager.fragment);
+					setArticleID(o.a);
+				}*/
+			//}
+			
+		/*	private function parseUrl(e:BrowserChangeEvent = null):void
+			{
+				Alert.show(browserManager.fragment);
+				if(browserManager.fragment==null)
+				{
+					//pokazujemy HOME
+					setArticleID("15");
+				}
+				else
+				{
+					var o:Object = URLUtil.stringToObject(browserManager.fragment);
+					setArticleID(o.a);
+				}
+			}*/
+			/**
+			 * Funkcja pobierająca i wyświetlająca artykuł o podanym ID.
+			 * 
+			 * @param ID numer ID artykułu który zamierzamy pobrać;
+			 * @param data zawiera dodatkowe informacje - np tekst, ktory chcemy wyszukac;
+			 */
+			public function setArticleID(ID:String,data:String = null,wait:Boolean = true):void
+			{
+				aktualneID=ID;
+				
+			//	updateUrl();
+				//HistoryManager.save();
+				if (wait) {
+					//nie pozwalamy rozpocząć nowego wyświetlanai artykuły, gdy wyświetla się stary, żęby na siebie efekty nie wjeżdżały
+					if (effectsPlaying) return;
+					effectsPlaying = true;
+					CursorManager.setBusyCursor();
+					//menuLeweVisible = parentDocument.menuLewe.visible; 
+					pasekAdresuVisible = parentDocument.menu.pasekAdresu.visible;
+					pasekAdresu = parentDocument.menu.pasekAdresu.htmlText;
+					
+					effect10.play([elements]);					
+					//parentDocument.menuLewe.visible=false;
+					parentDocument.menu.pasekAdresu.visible=false;
+					setTimeout(setArticleID,1100,ID,data,false);
+					return;
+				} 
+				//wpierw usuwamy wcześniej dodane elementy ze strony
+				elements.removeAllElements();
+				
+			/*	var str:mx.controls.TextArea = new mx.controls.TextArea();
+				
+				str.htmlText='<html><body><img id="liveStream" src="http://192.168.0.100/cgi-bin/nph-zms?mode=jpeg&amp;monitor=1&amp;scale=100&amp;maxfps=5&amp;buffer=1000&amp;connkey=269420&amp;rand=1335117458" alt="Monitor-1" width="320" height="240"/></body></html>';
+				str.height=500;
+				str.width=500;
+				elements.addElement(str);*/
+			/*	var img:Image = new Image();
+			  
+				img.source="http://192.168.0.100/cgi-bin/nph-zms?mode=jpeg&amp;monitor=1&amp;scale=100&amp;maxfps=5&amp;buffer=1000&amp;connkey=269420&amp;rand=1335117458";
+				img.width=320;
+				img.height=240;
+				elements.addElement(img);
+				elements.validateNow();
+				effect1.play([elements]);
+				return;*/
+				
+				/*//[TODO] usunac to TMP
+				var stream:IVisualElement = new Video_stream;
+				elements.addElement(stream);
+				elements.validateNow();
+				effect1.play([elements]);
+				return;*/
+				
+				//[TODO] usunac to TMP
+				//var cam:IPCam = new IPCam();
+				
+				//[TODO] usunac
+				
+				//return;
+				//TODO ponizej tmp
+				
+				var video:VideoJukeBox = new VideoJukeBox;
+				
+				video.setVideo("http://192.168.0.103:8080/");
+				
+				elements.addElement(video);
+				elements.validateNow();
+				effect1.play([elements]);
+				return;
+				
+				//TODO usunac ponizej do return to jest do lapania kamery 
+				var stream:MJPGElement = new MJPGElement;
+				//stream.width=320;
+				//stream.height=240;     
+				//cam.connect('http://192.168.0.100/cgi-bin/nph-zms?mode=jpeg&monitor=1&scale=100&maxfps=10&buffer=1000&user=username&password=password', 'user', 'pass');
+				elements.addElement(stream);
+				elements.validateNow();
+				effect1.play([elements]);
+				return;
+				
+				//w przypadku gdy numer ID jest nam znany, to ustawiamy element z FLEXa, a nie wczytujemy z serwera
+				if (ID=="25")
+				{
+					effect4.play([elements]);
+					var workersPage:IVisualElement = new workers;
+					//
+					elements.addElement(workersPage);
+					elements.validateNow();
+					//effect0.play([elements]);
+					
+					//przesuwanie jest zbyt wymagajace dla people dlatego korzystamy tylko z
+					//rozjasniania
+					
+				}
+				else if (ID=="26"){
+					elements.addElement(new newsViewer());
+					effect1.play([elements]);
+				}
+				else if (ID=="27")
+				{
+					elements.addElement(new contactEmail());
+					effect1.play([elements]);
+				}
+				
+					//po kliknieciu na szukaj w menuTest wywolywane sa nastepujace instrukcje
+					//parametr data w setSearchText to szukana fraza
+				else if (ID=="searchViewer")
+				{
+					var searchViewer1:searchViewer = new searchViewer();
+					searchViewer1.setSearchText(data);
+					elements.addElement(searchViewer1);
+					//parentDocument.menuLewe.visible = false;
+					//parentDocument.menuLewe.includeInLayout = false;
+					parentDocument.menu.pasekAdresu.visible = false;
+					parentDocument.menu.pasekAdresu.includeInLayout = false;
+					//przesuwanie jest zbyt wymagajace dla searchViewer dlatego korzystamy tylko z
+					//rozjasniania
+					effect4.play([elements]);
+				}
+				else
+				{
+					//wpisujemy ID do pobrania do labela bo inaczej HTTPService nie widziałby zmiennej bezpośrednio z kodu
+					//TODO usunac to wymazanie 
+				//	idArt.text = ID;
+					
+					//sprawdzamy czy jest ustawiony jakis kursor zajętości (klepsydra) i jeśli nie to go ustawiamy na czas pobierania elementów do artykułu
+				//	if(CursorManager.currentCursorID == CursorManager.NO_CURSOR)
+				//		CursorManager.setBusyCursor();
+					//pobieranieElementow.send();
+				}
+				
+			}
+			
+			
+			/**
+			 * Obsługujemy ściągnięcie elementów do wybranego artykułu.
+			 */
+			private function pobieranieElementow_resultHandler(event:ResultEvent):void{
+				myXML = XML(event.result);
+				xmlList =  myXML.node;
+				showArticle();
+			}
+			
+			/**
+			 * Komunikat wyświetlany w przypadku błędnego połączenia ze skryptem PHP.
+			 */
+			private function pobieranieElementow_faultHandler(event:FaultEvent):void{
+				CursorManager.removeBusyCursor();
+				Alert.show(event.fault.faultString,"Fault during getting content of article");
+			}
+			
+			private function endFun(event:DocumentLoadedEvent):void
+			{
+			}
+			
+			/**
+			 * Funkcja wyświetlająca pobrane elementy artykułu.
+			 */
+			private function showArticle():void
+			{
+				var seg:XML;
+				var tmp:String;
+				//sprawdzamy każdy element w pobranej liście i kierujemy treść do odpowiedniego konstruktora
+				for each (seg in xmlList)
+				{
+					if (seg.rodzaj=="table"){
+						showTable(seg.tresc.row);
+					} 
+					else if( seg.rodzaj=="textFlow")
+					{
+						tmp = eraseXmlTag(seg.tresc);
+						var content:String = seg.tresc.toString();
+						var z:XML = XML(tmp);
+						showText(z);
+					}
+					else if (seg.rodzaj=="pdf")
+					{
+						var tt:PDFElement =new PDFElement;						
+						elements.addElement(tt);
+						tt.setPDF(FlexGlobals.topLevelApplication.getPDFPath()+seg.tresc.toString());
+						//tt.validateNow();
+						//tt.pdf.fitHeight();
+						tt.pdf.validateNow();
+						tt.pdf.validateSize();	
+						tt.pdf.addEventListener(DocumentLoadedEvent.DOCUMENT_LOADED,endFun);
+					}
+					else if (seg.rodzaj == "gallery")
+					{
+						var tt2:galleryItem = new galleryItem;
+						tt2.setGallery(XML(seg.tresc));
+						elements.addElement(tt2);
+					}
+					else if (seg.rodzaj == "video")
+					{
+						var tt3:VideoJukeBox = new VideoJukeBox;
+						tt3.setVideo(seg.tresc.toString());
+						elements.addElement(tt3);
+					}
+					
+				}
+				/*
+				Przeglądamy wszystkie TextArea, aby ich wielkość wyrównała się do zawartości jaką posiadają, inaczej 
+				byłyby krótkie i trzeba by posługiwac się scrollerem aby je przeglądać. W tym miejscu 
+				ta funkcja służy jedynie do wyrównania wielkości do czystej zawartości tekstu w przypadku 
+				istnienia zdjęcia w textArea wyrównanie odbędzie się w innym miejscu kodu - po załadowaniu zdjęcia
+				*/
+				ustawSizeWszystkichTextArea();
+				//CursorManager.removeAllCursors();
+				//	effect1.xTo = elements.x;
+				//CursorManager.removeBusyCursor();
+				elements.validateDisplayList();
+				
+					effect1.play([elements]);
+			}
+			
+			/**
+			 * funkcja wyświetlająca element tabelka
+			 */
+			private function showTable(data2:XMLList):void{
+				var tab:DataGrid = new DataGrid();
+				var test:ArrayCollection = new ArrayCollection();
+				tab.columns = generateCols(data2);
+				tab.rowCount = data2.length();
+				for each (var xx:XML in data2){
+					test.addItem(xx);
+				}
+				tab.dataProvider = test;
+				elements.addElement(tab);
+			}
+			
+			
+			/**
+			 * Obsługa eventu - wybrania linku w tekście. Decydujemy czy link jest adresem na zewnątrz strony, czy odnośnikiem
+			 * (ID) do innego artykułu.
+			 */
+			protected function linkSelect(e:FlowElementMouseEvent):void
+			{
+				var adres:String = LinkElement(e.flowElement).href;
+				var liczba:int = new int(adres);
+				
+				if (liczba==0)
+				{
+					//czyli adres to jest zwykly link i jest on jednak skierowany na zewnątrz
+					//e.stopPropagation();
+					//	e.stopImmediatePropagation();
+					
+					
+				}
+				else
+				{
+					//czyli link to liczba i zmieniamy całą zawartość na tą z nowego artykułu
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+					e.preventDefault();					
+					//na zewnatrz tego komponentu obsluzymy zmiane strony, bo trzeba jeszcze zmienic MENU boczne do tego a stad
+					// tego nie obsluzymy
+					var eventObj:IDLinkEvent = new IDLinkEvent("idChanged",adres);
+					dispatchEvent(eventObj);
+				}
+			}
+			
+			/**
+			 * Funkcja tworząca w zewnętrznej zmiennej listę linków z danego TextFlowa; pierwotna 
+			 * funkcja została znaleziona na tym blogu: http://flexdevtips.blogspot.com/2010/10/displaying-html-text-in-labels.html
+			 */			
+			
+			private function findLinkElement(group:FlowGroupElement):void
+			{
+				var childGroups:Array = [];
+				// First check all the child elements of the current group,
+				// Also save any children that are FlowGroupElement
+				for (var i:int = 0; i < group.numChildren; i++) {
+					var element:FlowElement = group.getChildAt(i);
+					if (element is LinkElement) 
+					{
+						linksArray.push(element as LinkElement);
+					} else if (element is FlowGroupElement)
+					{
+						childGroups.push(element);
+					}
+				}
+				// Recursively check the child FlowGroupElements now
+				for (i = 0; i < childGroups.length; i++) {
+					var childGroup:FlowGroupElement = childGroups[i];
+					findLinkElement(childGroup);
+				}
+			}
+			
+			/**
+			 * Funkcja wyrównująca wielkość textArea do zawartości jaką posiadają, inaczej byłyby krótkie
+			 *	i trzeba by posługiwac się scrollerem aby je przeglądać.
+			 */
+			
+			private function ustawSizeWszystkichTextArea():void
+			{
+				//przeglądamy wszystkie elementy dodane do grupy elements
+				for (var zmienna:int = 0; zmienna < elements.numElements ; zmienna ++)
+				{
+					//jeśli element jest TextArea
+					if (elements.getElementAt(zmienna) is spark.components.TextArea)
+					{
+						//każemy mu wyliczyć jego własną wysokość, a następnie przepisujemy wysokość operacyjnej pracy scrollera do wysokości elementu
+						var tt:spark.components.TextArea =spark.components.TextArea(elements.getElementAt(zmienna));
+						tt.validateNow();
+						tt.validateDisplayList();
+						tt.width = this.width;
+						tt.validateNow();
+						tt.scroller.viewport.verticalScrollPosition = Number.MAX_VALUE;
+						tt.validateNow();
+						tt.height = tt.scroller.viewport.contentHeight + 10;
+						tt.validateNow();
+					}
+					if(elements.getElementAt(zmienna) is PDFElement)
+					{
+						var tt2:PDFElement =PDFElement(elements.getElementAt(zmienna));
+					}
+				}
+			}
+			
+			/**
+			 * Obsługa wydarzenia. Jeśli obrazek się skończy ładować z serwera ustawia swój przewidywany rozmiar jako prawdziwy
+			 * a następnie updatowany jest rozmiar textArea
+			 */
+			private function setSize(e:StatusChangeEvent):void
+			{
+				if(e.status == "ready")
+				{
+					var graf:InlineGraphicElement = InlineGraphicElement(e.element);
+					
+					graf.height = graf.actualHeight;
+					graf.width = graf.actualWidth;
+					
+					ustawSizeWszystkichTextArea();					
+				} 
+			}
+			
+			
+			/**
+			 * Funkcja wczytująca ściągniętą zawartość do jednego elementu textArea
+			 */
+			private function showText(cont:XML):void{
+				var tt:spark.components.TextArea = new spark.components.TextArea();
+				tt.selectable=true;
+				tt.id = "tt";
+		
+				//tt.style();
+				//tt.setStyle("contentBackgroundColor",FlexGlobals.topLevelApplication.getStyle("backgroundColor"));
+				tt.setStyle("contentBackgroundAlpha","0");
+				
+				tt.editable=false;
+				//pobieramy treść z XMLa
+				tt.textFlow = TextFlowUtil.importFromXML(cont,"collapse");
+				tt.width = elements.width;
+				
+				//dodajemy listener do ładowania się zdjęć i wyrównywania rozmiaru całego TextArea
+				tt.textFlow.addEventListener(StatusChangeEvent.INLINE_GRAPHIC_STATUS_CHANGE,setSize);
+				
+				
+				linksArray = [];
+				findLinkElement(tt.textFlow);
+				
+				var iter:int=0;
+				
+				for (iter = 0 ; iter<linksArray.length ; iter++)
+				{
+					linksArray[iter].addEventListener(FlowElementMouseEvent.CLICK,linkSelect, false, 0, true);
+					linksArray[iter].addEventListener(FlowElementMouseEvent.ROLL_OVER,setStatus, false, 0, true);
+					linksArray[iter].addEventListener(FlowElementMouseEvent.ROLL_OUT,clearStatus, false, 0, true);
+				}
+				
+				//ustawiamy kolor linków w tekście
+				var normalTLF:TextLayoutFormat = new TextLayoutFormat();
+				//normalTLF.color = 0xCCFFFF;
+				normalTLF.color = 0x79A2E9;
+				normalTLF.textDecoration = TextDecoration.NONE;
+				
+				var hoverTLF:TextLayoutFormat = new TextLayoutFormat();
+				hoverTLF.color = 0xE69D39;
+				hoverTLF.textDecoration = TextDecoration.NONE;
+				
+				var activeTLF:TextLayoutFormat = new TextLayoutFormat();
+				activeTLF.color = 0xF06D1E;
+				activeTLF.textDecoration = TextDecoration.NONE;
+				
+				tt.textFlow.linkNormalFormat = normalTLF;
+				tt.textFlow.linkHoverFormat = hoverTLF;
+				tt.textFlow.linkActiveFormat = activeTLF;
+				
+				elements.addElement(tt);
+			}
+			
+			/**
+			 * Pokazujemy adres docelowy linka w okienku
+			 */
+			private function setStatus(e:FlowElementMouseEvent):void
+			{
+				var adres:String = LinkElement(e.flowElement).href;
+				var liczba:int = new int(adres);
+				
+				if (liczba==0)
+				{
+					toolTip = adres;
+				}
+				else
+				{
+					var Lista:XMLList = menuXML.descendants().(attribute('id') == liczba);
+					var zm:XML = Lista[0];
+					
+					if(zm == null)
+					{
+						toolTip = "ERROR: element id " + adres + " doesnt exist."
+					}
+						else
+					{
+						toolTip = zm.attribute('nazwa').toString();
+					}
+				}
+			}
+			/**
+			 * Chowamy adres docelowy linka
+			 */
+			private function clearStatus(e:FlowElementMouseEvent):void
+			{
+				toolTip="";
+			}
+			
+			/**
+			 * Funkcja do generacji tablicy z kolumnami, których nazwy są tworzone na podstawie nazw atrybutów
+			 * obiektów XML.
+			 * 
+			 * input - lista obiektów XML
+			 */
+			
+			private function generateCols(input:XMLList):Array
+			{
+				var e1:XML = input[0];
+				var columns:Array = [];
+				for each(var child:XML in e1.children())
+				{
+					var col:DataGridColumn = new DataGridColumn();
+					col.dataField = child.name();
+					var fieldName:String = child.name();
+					col.headerText = fieldName.charAt(0).toUpperCase() + fieldName.substr(1);
+					col.editable = true;
+					columns.push(col);
+				}
+				return columns;
+			}
+			
+			/**
+			 * Usuwamy tagi XML głównego rodzica (<articles>treść</articles>) z danych ściągniętych z php
+			 */
+			private function eraseXmlTag(content:String):String{
+				return content.substring(10,content.length-9);
+			}
+
+			protected function effect3_effectEndHandler(event:EffectEvent):void
+			{
+				parentDocument.menu.pasekAdresu.htmlText = pasekAdresu;
+				elements.validateNow();
+				effectsPlaying = false;
+				CursorManager.removeBusyCursor();
+			}
+
+
+			protected function group1_resizeHandler(event:ResizeEvent):void
+			{
+				ustawSizeWszystkichTextArea();
+			}
+
+		]]> 
+	</fx:Script>
+	
+	<fx:Declarations> 
+		<s:Sine id="sineEasing" 
+				easeInFraction="1"/>
+		
+		<s:Fade id="effect11" alphaFrom="1.0" alphaTo="0.0" duration="0"/> 
+		 <s:Fade id="effect10" alphaFrom="1.0" alphaTo="0.0" duration="1000" 
+				effectStart="effect12.play([elements])"/> 
+		<s:Move id="effect12" 
+				  xFrom="0" xTo="-2000" duration="1000" 
+				  effectEnd="effect13.play([elements])"/>
+		<s:Move id="effect13" 
+				 xTo="0" duration="0"/>
+		  
+		<s:Move id="effect1" duration="1000" xFrom="2000" xTo="0" effectStart="effect2.play([elements])"/>     
+		<s:Fade id="effect2" alphaFrom="0.0" alphaTo="1.0" duration="1000" 
+				effectEnd="if (pasekAdresuVisible) parentDocument.menu.pasekAdresu.visible=true;
+				effect3_effectEndHandler(event)"/>
+		<s:Fade id="effect3" alphaFrom="0.0" alphaTo="1.0" duration="0" effectEnd="effect3_effectEndHandler(event)"/>
+		<s:Fade easer="{sineEasing}" id="effect4" startDelay="500" alphaFrom="0.0" alphaTo="1.0" duration="2000" effectEnd="effect3_effectEndHandler(event)"/>
+	</fx:Declarations>
+	<s:BorderContainer id="borderAroundElements" width="100%" alpha="1.0" backgroundColor="#000000" >
+		<s:VGroup horizontalAlign="center"  id="elements" width="100%"/>
+	</s:BorderContainer>
+</s:Group>
+

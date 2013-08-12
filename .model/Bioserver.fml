@@ -1,0 +1,1509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model xmlns="http://ns.adobe.com/Fiber/1.0">
+  <annotation name="ActionScriptGeneration">
+    <item name="FullyQualifyReferences">true</item>
+  </annotation>
+  <service name="UserService">
+    <annotation name="ActionScriptGeneration">
+      <item name="WSDL-service">UserService</item>
+      <item name="ServiceType">WebService</item>
+      <item name="WSDL">http://192.168.10.2:5080/openmeetings/services/UserService?wsdl</item>
+      <item name="Package">services.userservice</item>
+      <item name="WSDL-port">UserServiceHttpSoap11Endpoint</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">WebService</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="WSDL-endpoint">http://192.168.10.2:5080/openmeetings/services/UserService.UserServiceHttpSoap11Endpoint/</item>
+      <item name="LINKED_FILE"></item>
+    </annotation>
+    <function name="addNewUserWithTimeZone" arguments="SID:string,username:string,userpass:string,lastname:string,firstname:string,email:string,additionalname:string,street:string,zip:string,fax:string,states_id:long,town:string,language_id:long,baseURL:string,jNameTimeZone:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addNewUserWithTimeZone</item>
+        <item name="addNewUserWithTimeZone">http://services.axis.openmeetings.apache.org,addNewUserWithTimeZone</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,string,string,long,string,long,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="loginUser" arguments="SID:string,username:string,userpass:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:loginUser</item>
+        <item name="loginUser">http://services.axis.openmeetings.apache.org,loginUser</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getUsersByOrganisation" arguments="SID:string,organisation_id:long,start:integer,max:integer,orderby:string,asc:boolean" return-type="User[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getUsersByOrganisation</item>
+        <item name="getUsersByOrganisation">http://services.axis.openmeetings.apache.org,getUsersByOrganisation</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,integer,integer,string,boolean</item>
+        <item name="returnType">User</item>
+      </annotation>
+    </function>
+    <function name="addNewUser" arguments="SID:string,username:string,userpass:string,lastname:string,firstname:string,email:string,additionalname:string,street:string,zip:string,fax:string,states_id:long,town:string,language_id:long,baseURL:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addNewUser</item>
+        <item name="addNewUser">http://services.axis.openmeetings.apache.org,addNewUser</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,string,string,long,string,long,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="deleteUserById" arguments="SID:string,userId:long" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:deleteUserById</item>
+        <item name="deleteUserById">http://services.axis.openmeetings.apache.org,deleteUserById</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="setUserObjectAndGenerateRoomHashByURLAndRecFlag" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string,externalUserId:string,externalUserType:string,room_id:long,becomeModeratorAsInt:integer,showAudioVideoTestAsInt:integer,allowRecording:integer" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="setUserObjectAndGenerateRoomHashByURLAndRecFlag">http://services.axis.openmeetings.apache.org,setUserObjectAndGenerateRoomHashByURLAndRecFlag</item>
+        <item name="SOAPAction">urn:setUserObjectAndGenerateRoomHashByURLAndRecFlag</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,long,integer,integer,integer</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="addOrganisation" arguments="SID:string,name:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addOrganisation</item>
+        <item name="addOrganisation">http://services.axis.openmeetings.apache.org,addOrganisation</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="addNewUserWithExternalType" arguments="SID:string,username:string,userpass:string,lastname:string,firstname:string,email:string,additionalname:string,street:string,zip:string,fax:string,states_id:long,town:string,language_id:long,jNameTimeZone:string,externalUserId:string,externalUserType:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addNewUserWithExternalType</item>
+        <item name="addNewUserWithExternalType">http://services.axis.openmeetings.apache.org,addNewUserWithExternalType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,string,string,long,string,long,string,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getErrorByCode" arguments="SID:string,errorid:long,language_id:long" return-type="ErrorResult">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getErrorByCode</item>
+        <item name="getErrorByCode">http://services.axis.openmeetings.apache.org,getErrorByCode</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,long</item>
+        <item name="returnType">ErrorResult</item>
+      </annotation>
+    </function>
+    <function name="setUserObject" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:setUserObject</item>
+        <item name="setUserObject">http://services.axis.openmeetings.apache.org,setUserObject</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="setUserObjectWithExternalUser" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string,externalUserId:string,externalUserType:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="setUserObjectWithExternalUser">http://services.axis.openmeetings.apache.org,setUserObjectWithExternalUser</item>
+        <item name="SOAPAction">urn:setUserObjectWithExternalUser</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="setUserAndNickName" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string,externalUserId:string,externalUserType:string,room_id:long,becomeModeratorAsInt:integer,showAudioVideoTestAsInt:integer,showNickNameDialogAsInt:integer" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:setUserAndNickName</item>
+        <item name="setUserAndNickName">http://services.axis.openmeetings.apache.org,setUserAndNickName</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,long,integer,integer,integer</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="kickUserByPublicSID" arguments="SID:string,publicSID:string" return-type="boolean">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="kickUserByPublicSID">http://services.axis.openmeetings.apache.org,kickUserByPublicSID</item>
+        <item name="SOAPAction">urn:kickUserByPublicSID</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string</item>
+        <item name="returnType">boolean</item>
+      </annotation>
+    </function>
+    <function name="setUserObjectAndGenerateRoomHash" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string,externalUserId:string,externalUserType:string,room_id:long,becomeModeratorAsInt:integer,showAudioVideoTestAsInt:integer" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="setUserObjectAndGenerateRoomHash">http://services.axis.openmeetings.apache.org,setUserObjectAndGenerateRoomHash</item>
+        <item name="SOAPAction">urn:setUserObjectAndGenerateRoomHash</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,long,integer,integer</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="setUserObjectAndGenerateRoomHashByURL" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string,externalUserId:string,externalUserType:string,room_id:long,becomeModeratorAsInt:integer,showAudioVideoTestAsInt:integer" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="setUserObjectAndGenerateRoomHashByURL">http://services.axis.openmeetings.apache.org,setUserObjectAndGenerateRoomHashByURL</item>
+        <item name="SOAPAction">urn:setUserObjectAndGenerateRoomHashByURL</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string,long,integer,integer</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="deleteUserByExternalUserIdAndType" arguments="SID:string,externalUserId:string,externalUserType:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="deleteUserByExternalUserIdAndType">http://services.axis.openmeetings.apache.org,deleteUserByExternalUserIdAndType</item>
+        <item name="SOAPAction">urn:deleteUserByExternalUserIdAndType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="setUserObjectAndGenerateRecordingHashByURL" arguments="SID:string,username:string,firstname:string,lastname:string,externalUserId:string,externalUserType:string,recording_id:long" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="setUserObjectAndGenerateRecordingHashByURL">http://services.axis.openmeetings.apache.org,setUserObjectAndGenerateRecordingHashByURL</item>
+        <item name="SOAPAction">urn:setUserObjectAndGenerateRecordingHashByURL</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,long</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="getSession" return-type="Sessiondata">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getSession</item>
+        <item name="getSession">http://services.axis.openmeetings.apache.org,getSession</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">Sessiondata</item>
+      </annotation>
+    </function>
+    <function name="addUserToOrganisation" arguments="SID:string,user_id:long,organisation_id:long,insertedby:long" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addUserToOrganisation">http://services.axis.openmeetings.apache.org,addUserToOrganisation</item>
+        <item name="SOAPAction">urn:addUserToOrganisation</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,long,long</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="setUserObjectMainLandingZone" arguments="SID:string,username:string,firstname:string,lastname:string,profilePictureUrl:string,email:string,externalUserId:string,externalUserType:string" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="setUserObjectMainLandingZone">http://services.axis.openmeetings.apache.org,setUserObjectMainLandingZone</item>
+        <item name="SOAPAction">urn:setUserObjectMainLandingZone</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,string,string</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+  </service>
+  <entity name="ErrorResult">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">ErrorResult</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="errmessage" type="string" required="true"/>
+    <property name="errorId" type="long" required="true"/>
+    <property name="errortype" type="string" required="true"/>
+  </entity>
+  <service name="RoomService">
+    <annotation name="ActionScriptGeneration">
+      <item name="WSDL-service">RoomService</item>
+      <item name="ServiceType">WebService</item>
+      <item name="WSDL">http://192.168.10.2:5080/openmeetings/services/RoomService?wsdl</item>
+      <item name="Package">services.roomservice</item>
+      <item name="WSDL-port">RoomServiceHttpSoap11Endpoint</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">WebService</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="WSDL-endpoint">http://192.168.10.2:5080/openmeetings/services/RoomService.RoomServiceHttpSoap11Endpoint/</item>
+      <item name="LINKED_FILE"></item>
+    </annotation>
+    <function name="updateRoom" arguments="SID:string,rooms_id:long,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,videoPodWidth:integer,videoPodHeight:integer,videoPodXPosition:integer,videoPodYPosition:integer,moderationPanelXPosition:integer,showWhiteBoard:boolean,whiteBoardPanelXPosition:integer,whiteBoardPanelYPosition:integer,whiteBoardPanelHeight:integer,whiteBoardPanelWidth:integer,showFilesPanel:boolean,filesPanelXPosition:integer,filesPanelYPosition:integer,filesPanelHeight:integer,filesPanelWidth:integer,appointment:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:updateRoom</item>
+        <item name="updateRoom">http://services.axis.openmeetings.apache.org,updateRoom</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,long,string,long,boolean,integer,integer,integer,integer,integer,boolean,integer,integer,integer,integer,boolean,integer,integer,integer,integer,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getRoomsWithCurrentUsersByList" arguments="SID:string,start:integer,max:integer,orderby:string,asc:boolean" return-type="RoomReturn[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getRoomsWithCurrentUsersByList">http://services.axis.openmeetings.apache.org,getRoomsWithCurrentUsersByList</item>
+        <item name="SOAPAction">urn:getRoomsWithCurrentUsersByList</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,integer,integer,string,boolean</item>
+        <item name="returnType">RoomReturn</item>
+      </annotation>
+    </function>
+    <function name="getFlvRecordingByExternalRoomTypeByList" arguments="SID:string,externalRoomType:string" return-type="FlvRecording[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getFlvRecordingByExternalRoomTypeByList</item>
+        <item name="getFlvRecordingByExternalRoomTypeByList">http://services.axis.openmeetings.apache.org,getFlvRecordingByExternalRoomTypeByList</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string</item>
+        <item name="returnType">FlvRecording</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationQuestionsAndAudioType" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,allowUserQuestions:boolean,isAudioOnly:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addRoomWithModerationQuestionsAndAudioType">http://services.axis.openmeetings.apache.org,addRoomWithModerationQuestionsAndAudioType</item>
+        <item name="SOAPAction">urn:addRoomWithModerationQuestionsAndAudioType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getFlvRecordingByExternalRoomTypeAndCreator" arguments="SID:string,externalRoomType:string,insertedBy:long" return-type="FLVRecordingReturn[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getFlvRecordingByExternalRoomTypeAndCreator">http://services.axis.openmeetings.apache.org,getFlvRecordingByExternalRoomTypeAndCreator</item>
+        <item name="SOAPAction">urn:getFlvRecordingByExternalRoomTypeAndCreator</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long</item>
+        <item name="returnType">FLVRecordingReturn</item>
+      </annotation>
+    </function>
+    <function name="closeRoom" arguments="SID:string,room_id:long,status:boolean" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="closeRoom">http://services.axis.openmeetings.apache.org,closeRoom</item>
+        <item name="SOAPAction">urn:closeRoom</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,boolean</item>
+        <item name="returnType">integer</item>
+      </annotation>
+    </function>
+    <function name="getRoomsPublic" arguments="SID:string,roomtypes_id:long" return-type="Room[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getRoomsPublic</item>
+        <item name="getRoomsPublic">http://services.axis.openmeetings.apache.org,getRoomsPublic</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">Room</item>
+      </annotation>
+    </function>
+    <function name="getRoomTypes" arguments="SID:string" return-type="RoomType[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getRoomTypes">http://services.axis.openmeetings.apache.org,getRoomTypes</item>
+        <item name="SOAPAction">urn:getRoomTypes</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string</item>
+        <item name="returnType">RoomType</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationExternalTypeAndAudioType" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,externalRoomType:string,allowUserQuestions:boolean,isAudioOnly:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addRoomWithModerationExternalTypeAndAudioType">http://services.axis.openmeetings.apache.org,addRoomWithModerationExternalTypeAndAudioType</item>
+        <item name="SOAPAction">urn:addRoomWithModerationExternalTypeAndAudioType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,string,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getInvitationHash" arguments="SID:string,username:string,room_id:long,isPasswordProtected:boolean,invitationpass:string,valid:integer,validFromDate:string,validFromTime:string,validToDate:string,validToTime:string" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getInvitationHash">http://services.axis.openmeetings.apache.org,getInvitationHash</item>
+        <item name="SOAPAction">urn:getInvitationHash</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,boolean,string,integer,string,string,string,string</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="sendInvitationHash" arguments="SID:string,username:string,message:string,baseurl:string,email:string,subject:string,room_id:long,conferencedomain:string,isPasswordProtected:boolean,invitationpass:string,valid:integer,validFromDate:string,validFromTime:string,validToDate:string,validToTime:string,language_id:long,sendMail:boolean" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="sendInvitationHash">http://services.axis.openmeetings.apache.org,sendInvitationHash</item>
+        <item name="SOAPAction">urn:sendInvitationHash</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,long,string,boolean,string,integer,string,string,string,string,long,boolean</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationAndQuestions" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,allowUserQuestions:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addRoomWithModerationAndQuestions">http://services.axis.openmeetings.apache.org,addRoomWithModerationAndQuestions</item>
+        <item name="SOAPAction">urn:addRoomWithModerationAndQuestions</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getFlvRecordingByExternalUserId" arguments="SID:string,externalUserId:string" return-type="FLVRecordingReturn[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getFlvRecordingByExternalUserId">http://services.axis.openmeetings.apache.org,getFlvRecordingByExternalUserId</item>
+        <item name="SOAPAction">urn:getFlvRecordingByExternalUserId</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string</item>
+        <item name="returnType">FLVRecordingReturn</item>
+      </annotation>
+    </function>
+    <function name="getFlvRecordingByExternalRoomType" arguments="SID:string,externalRoomType:string" return-type="FlvRecording[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getFlvRecordingByExternalRoomType">http://services.axis.openmeetings.apache.org,getFlvRecordingByExternalRoomType</item>
+        <item name="SOAPAction">urn:getFlvRecordingByExternalRoomType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string</item>
+        <item name="returnType">FlvRecording</item>
+      </annotation>
+    </function>
+    <function name="getRoomCounters" arguments="SID:string,roomId1:integer,roomId2:integer,roomId3:integer,roomId4:integer,roomId5:integer,roomId6:integer,roomId7:integer,roomId8:integer,roomId9:integer,roomId10:integer" return-type="RoomCountBean[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getRoomCounters">http://services.axis.openmeetings.apache.org,getRoomCounters</item>
+        <item name="SOAPAction">urn:getRoomCounters</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,integer,integer,integer,integer,integer,integer,integer,integer,integer,integer</item>
+        <item name="returnType">RoomCountBean</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModeration" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addRoomWithModeration</item>
+        <item name="addRoomWithModeration">http://services.axis.openmeetings.apache.org,addRoomWithModeration</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="kickUser" arguments="SID_Admin:string,room_id:long" return-type="boolean">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:kickUser</item>
+        <item name="kickUser">http://services.axis.openmeetings.apache.org,kickUser</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">boolean</item>
+      </annotation>
+    </function>
+    <function name="sendInvitationHashWithDateObject" arguments="SID:string,username:string,message:string,baseurl:string,email:string,subject:string,room_id:long,conferencedomain:string,isPasswordProtected:boolean,invitationpass:string,valid:integer,fromDate:date,toDate:date,language_id:long,sendMail:boolean" return-type="string">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="sendInvitationHashWithDateObject">http://services.axis.openmeetings.apache.org,sendInvitationHashWithDateObject</item>
+        <item name="SOAPAction">urn:sendInvitationHashWithDateObject</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,string,string,string,string,long,string,boolean,string,integer,date,date,long,boolean</item>
+        <item name="returnType">string</item>
+      </annotation>
+    </function>
+    <function name="addExternalMeetingMemberRemindToRoom" arguments="SID:string,room_id:long,firstname:string,lastname:string,email:string,baseUrl:string,language_id:long,jNameTimeZone:string,invitorName:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addExternalMeetingMemberRemindToRoom</item>
+        <item name="addExternalMeetingMemberRemindToRoom">http://services.axis.openmeetings.apache.org,addExternalMeetingMemberRemindToRoom</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,string,string,string,long,string,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="modifyRoomParameter" arguments="SID:string,room_id:long,paramName:string,paramValue:string" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="modifyRoomParameter">http://services.axis.openmeetings.apache.org,modifyRoomParameter</item>
+        <item name="SOAPAction">urn:modifyRoomParameter</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,string</item>
+        <item name="returnType">integer</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationAndExternalTypeAndStartEnd" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,externalRoomType:string,validFromDate:string,validFromTime:string,validToDate:string,validToTime:string,isPasswordProtected:boolean,password:string,reminderTypeId:long,redirectURL:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addRoomWithModerationAndExternalTypeAndStartEnd">http://services.axis.openmeetings.apache.org,addRoomWithModerationAndExternalTypeAndStartEnd</item>
+        <item name="SOAPAction">urn:addRoomWithModerationAndExternalTypeAndStartEnd</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,string,string,string,string,string,boolean,string,long,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationQuestionsAudioTypeAndHideOptions" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,allowUserQuestions:boolean,isAudioOnly:boolean,hideTopBar:boolean,hideChat:boolean,hideActivitiesAndActions:boolean,hideFilesExplorer:boolean,hideActionsMenu:boolean,hideScreenSharing:boolean,hideWhiteboard:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addRoomWithModerationQuestionsAudioTypeAndHideOptions">http://services.axis.openmeetings.apache.org,addRoomWithModerationQuestionsAudioTypeAndHideOptions</item>
+        <item name="SOAPAction">urn:addRoomWithModerationQuestionsAudioTypeAndHideOptions</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="addRoom" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,videoPodWidth:integer,videoPodHeight:integer,videoPodXPosition:integer,videoPodYPosition:integer,moderationPanelXPosition:integer,showWhiteBoard:boolean,whiteBoardPanelXPosition:integer,whiteBoardPanelYPosition:integer,whiteBoardPanelHeight:integer,whiteBoardPanelWidth:integer,showFilesPanel:boolean,filesPanelXPosition:integer,filesPanelYPosition:integer,filesPanelHeight:integer,filesPanelWidth:integer" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addRoom</item>
+        <item name="addRoom">http://services.axis.openmeetings.apache.org,addRoom</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,integer,integer,integer,integer,integer,boolean,integer,integer,integer,integer,boolean,integer,integer,integer,integer</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getRoomById" arguments="SID:string,rooms_id:long" return-type="Room">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getRoomById</item>
+        <item name="getRoomById">http://services.axis.openmeetings.apache.org,getRoomById</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">Room</item>
+      </annotation>
+    </function>
+    <function name="addMeetingMemberRemindToRoom" arguments="SID:string,room_id:long,firstname:string,lastname:string,email:string,phone:string,baseUrl:string,language_id:long" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addMeetingMemberRemindToRoom">http://services.axis.openmeetings.apache.org,addMeetingMemberRemindToRoom</item>
+        <item name="SOAPAction">urn:addMeetingMemberRemindToRoom</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,string,string,string,string,long</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="updateRoomWithModeration" arguments="SID:string,room_id:long,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:updateRoomWithModeration</item>
+        <item name="updateRoomWithModeration">http://services.axis.openmeetings.apache.org,updateRoomWithModeration</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,long,string,long,boolean,boolean,boolean,integer,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getRoomsWithCurrentUsers" arguments="SID:string,start:integer,max:integer,orderby:string,asc:boolean" return-type="Room[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getRoomsWithCurrentUsers</item>
+        <item name="getRoomsWithCurrentUsers">http://services.axis.openmeetings.apache.org,getRoomsWithCurrentUsers</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,integer,integer,string,boolean</item>
+        <item name="returnType">Room</item>
+      </annotation>
+    </function>
+    <function name="getRoomIdByExternalId" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,externalRoomId:long,externalRoomType:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getRoomIdByExternalId</item>
+        <item name="getRoomIdByExternalId">http://services.axis.openmeetings.apache.org,getRoomIdByExternalId</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,long,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="deleteFlvRecording" arguments="SID:string,flvRecordingId:long" return-type="boolean">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:deleteFlvRecording</item>
+        <item name="deleteFlvRecording">http://services.axis.openmeetings.apache.org,deleteFlvRecording</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">boolean</item>
+      </annotation>
+    </function>
+    <function name="deleteRoom" arguments="SID:string,rooms_id:long" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:deleteRoom</item>
+        <item name="deleteRoom">http://services.axis.openmeetings.apache.org,deleteRoom</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getRoomsWithCurrentUsersByListAndType" arguments="SID:string,start:integer,max:integer,orderby:string,asc:boolean,externalRoomType:string" return-type="RoomReturn[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:getRoomsWithCurrentUsersByListAndType</item>
+        <item name="getRoomsWithCurrentUsersByListAndType">http://services.axis.openmeetings.apache.org,getRoomsWithCurrentUsersByListAndType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,integer,integer,string,boolean,string</item>
+        <item name="returnType">RoomReturn</item>
+      </annotation>
+    </function>
+    <function name="updateRoomWithModerationQuestionsAudioTypeAndHideOptions" arguments="SID:string,room_id:long,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,allowUserQuestions:boolean,isAudioOnly:boolean,hideTopBar:boolean,hideChat:boolean,hideActivitiesAndActions:boolean,hideFilesExplorer:boolean,hideActionsMenu:boolean,hideScreenSharing:boolean,hideWhiteboard:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="updateRoomWithModerationQuestionsAudioTypeAndHideOptions">http://services.axis.openmeetings.apache.org,updateRoomWithModerationQuestionsAudioTypeAndHideOptions</item>
+        <item name="SOAPAction">urn:updateRoomWithModerationQuestionsAudioTypeAndHideOptions</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,long,string,long,boolean,boolean,boolean,integer,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getRoomWithClientObjectsById" arguments="SID:string,rooms_id:long" return-type="RoomReturn">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getRoomWithClientObjectsById">http://services.axis.openmeetings.apache.org,getRoomWithClientObjectsById</item>
+        <item name="SOAPAction">urn:getRoomWithClientObjectsById</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">RoomReturn</item>
+      </annotation>
+    </function>
+    <function name="getRooms" arguments="SID:string,start:integer,max:integer,orderby:string,asc:boolean" return-type="Room[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getRooms">http://services.axis.openmeetings.apache.org,getRooms</item>
+        <item name="SOAPAction">urn:getRooms</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,integer,integer,string,boolean</item>
+        <item name="returnType">Room</item>
+      </annotation>
+    </function>
+    <function name="getRoomWithCurrentUsersById" arguments="SID:string,rooms_id:long" return-type="Room">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getRoomWithCurrentUsersById">http://services.axis.openmeetings.apache.org,getRoomWithCurrentUsersById</item>
+        <item name="SOAPAction">urn:getRoomWithCurrentUsersById</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">Room</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationExternalTypeAndTopBarOption" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,externalRoomType:string,allowUserQuestions:boolean,isAudioOnly:boolean,waitForRecording:boolean,allowRecording:boolean,hideTopBar:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addRoomWithModerationExternalTypeAndTopBarOption</item>
+        <item name="addRoomWithModerationExternalTypeAndTopBarOption">http://services.axis.openmeetings.apache.org,addRoomWithModerationExternalTypeAndTopBarOption</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,string,boolean,boolean,boolean,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationAndRecordingFlags" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,externalRoomType:string,allowUserQuestions:boolean,isAudioOnly:boolean,waitForRecording:boolean,allowRecording:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="addRoomWithModerationAndRecordingFlags">http://services.axis.openmeetings.apache.org,addRoomWithModerationAndRecordingFlags</item>
+        <item name="SOAPAction">urn:addRoomWithModerationAndRecordingFlags</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,string,boolean,boolean,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="updateRoomWithModerationAndQuestions" arguments="SID:string,room_id:long,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,allowUserQuestions:boolean" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:updateRoomWithModerationAndQuestions</item>
+        <item name="updateRoomWithModerationAndQuestions">http://services.axis.openmeetings.apache.org,updateRoomWithModerationAndQuestions</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long,string,long,string,long,boolean,boolean,boolean,integer,boolean,boolean</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+    <function name="getFlvRecordingByRoomId" arguments="SID:string,roomId:long" return-type="FlvRecording[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="getFlvRecordingByRoomId">http://services.axis.openmeetings.apache.org,getFlvRecordingByRoomId</item>
+        <item name="SOAPAction">urn:getFlvRecordingByRoomId</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,long</item>
+        <item name="returnType">FlvRecording</item>
+      </annotation>
+    </function>
+    <function name="addRoomWithModerationAndExternalType" arguments="SID:string,name:string,roomtypes_id:long,comment:string,numberOfPartizipants:long,ispublic:boolean,appointment:boolean,isDemoRoom:boolean,demoTime:integer,isModeratedRoom:boolean,externalRoomType:string" return-type="long">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="WSDLName">
+        <item name="SOAPAction">urn:addRoomWithModerationAndExternalType</item>
+        <item name="addRoomWithModerationAndExternalType">http://services.axis.openmeetings.apache.org,addRoomWithModerationAndExternalType</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">string,string,long,string,long,boolean,boolean,boolean,integer,boolean,string</item>
+        <item name="returnType">long</item>
+      </annotation>
+    </function>
+  </service>
+  <entity name="User">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">User</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="activatehash" type="string" required="true"/>
+    <property name="adresses" type="Address" required="true"/>
+    <property name="age" type="date" required="true"/>
+    <property name="availible" type="integer" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="externalUserId" type="string" required="true"/>
+    <property name="externalUserType" type="string" required="true"/>
+    <property name="firstname" type="string" required="true"/>
+    <property name="forceTimeZoneCheck" type="boolean" required="true"/>
+    <property name="language_id" type="long" required="true"/>
+    <property name="lastlogin" type="date" required="true"/>
+    <property name="lastname" type="string" required="true"/>
+    <property name="lasttrans" type="long" required="true"/>
+    <property name="level_id" type="long" required="true"/>
+    <property name="lieferadressen" type="Userdata" required="true"/>
+    <property name="login" type="string" required="true"/>
+    <property name="omTimeZone" type="OmTimeZone" required="true"/>
+    <property name="organisation_users" type="Organisation_Users[]" required="true"/>
+    <property name="password" type="string" required="true"/>
+    <property name="phoneForSMS" type="string" required="true"/>
+    <property name="pictureuri" type="string" required="true"/>
+    <property name="rechnungsaddressen" type="Userdata" required="true"/>
+    <property name="regdate" type="date" required="true"/>
+    <property name="resethash" type="string" required="true"/>
+    <property name="salutations_id" type="long" required="true"/>
+    <property name="sendSMS" type="boolean" required="true"/>
+    <property name="sessionData" type="Sessiondata" required="true"/>
+    <property name="showContactData" type="boolean" required="true"/>
+    <property name="showContactDataToContacts" type="boolean" required="true"/>
+    <property name="sipUser" type="AsteriskSipUser" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="status" type="integer" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+    <property name="userOffers" type="string" required="true"/>
+    <property name="userSearchs" type="string" required="true"/>
+    <property name="user_id" type="long" required="true"/>
+    <property name="userlevel" type="Userlevel" required="true"/>
+  </entity>
+  <entity name="FlvRecording">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">FlvRecording</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="alternateDownload" type="string" required="true"/>
+    <property name="comment" type="string" required="true"/>
+    <property name="creator" type="User" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="fileHash" type="string" required="true"/>
+    <property name="fileName" type="string" required="true"/>
+    <property name="fileSize" type="long" required="true"/>
+    <property name="flvHeight" type="integer" required="true"/>
+    <property name="flvRecordingId" type="long" required="true"/>
+    <property name="flvRecordingLog" type="FlvRecordingLog[]" required="true"/>
+    <property name="flvRecordingMetaData" type="FlvRecordingMetaData[]" required="true"/>
+    <property name="flvWidth" type="integer" required="true"/>
+    <property name="height" type="integer" required="true"/>
+    <property name="inserted" type="date" required="true"/>
+    <property name="insertedBy" type="long" required="true"/>
+    <property name="isFolder" type="boolean" required="true"/>
+    <property name="isImage" type="boolean" required="true"/>
+    <property name="isInterview" type="boolean" required="true"/>
+    <property name="isPresentation" type="boolean" required="true"/>
+    <property name="isRecording" type="boolean" required="true"/>
+    <property name="organization_id" type="long" required="true"/>
+    <property name="ownerId" type="long" required="true"/>
+    <property name="parentFileExplorerItemId" type="long" required="true"/>
+    <property name="previewImage" type="string" required="true"/>
+    <property name="progressPostProcessing" type="integer" required="true"/>
+    <property name="recordEnd" type="date" required="true"/>
+    <property name="recordStart" type="date" required="true"/>
+    <property name="recorderStreamId" type="string" required="true"/>
+    <property name="room" type="Room" required="true"/>
+    <property name="room_id" type="long" required="true"/>
+    <property name="updated" type="date" required="true"/>
+    <property name="width" type="integer" required="true"/>
+  </entity>
+  <entity name="RoomUser">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">RoomUser</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="avsettings" type="string" required="true"/>
+    <property name="broadcastId" type="long" required="true"/>
+    <property name="firstname" type="string" required="true"/>
+    <property name="isBroadCasting" type="boolean" required="true"/>
+    <property name="lastname" type="string" required="true"/>
+    <property name="publicSID" type="string" required="true"/>
+  </entity>
+  <entity name="Sessiondata">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Sessiondata</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="id" type="long" required="true"/>
+    <property name="language_id" type="long" required="true"/>
+    <property name="organization_id" type="long" required="true"/>
+    <property name="refresh_time" type="date" required="true"/>
+    <property name="sessionXml" type="string" required="true"/>
+    <property name="session_id" type="string" required="true"/>
+    <property name="starttermin_time" type="date" required="true"/>
+    <property name="storePermanent" type="boolean" required="true"/>
+    <property name="user_id" type="long" required="true"/>
+  </entity>
+  <entity name="Organisation">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Organisation</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="insertedby" type="long" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="organisation_id" type="long" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatedby" type="long" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+  </entity>
+  <entity name="Userlevel">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Userlevel</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="description" type="string" required="true"/>
+    <property name="level_id" type="long" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="statuscode" type="integer" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+  </entity>
+  <entity name="RoomReturn">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">RoomReturn</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="created" type="date" required="true"/>
+    <property name="creator" type="string" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="roomUser" type="RoomUser[]" required="true"/>
+    <property name="room_id" type="long" required="true"/>
+  </entity>
+  <entity name="Server">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Server</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="active" type="boolean" required="true"/>
+    <property name="address" type="string" required="true"/>
+    <property name="comment" type="string" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="id" type="long" required="true"/>
+    <property name="inserted" type="date" required="true"/>
+    <property name="insertedby" type="User" required="true"/>
+    <property name="lastPing" type="date" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="pass" type="string" required="true"/>
+    <property name="port" type="integer" required="true"/>
+    <property name="protocol" type="string" required="true"/>
+    <property name="updated" type="date" required="true"/>
+    <property name="updatedby" type="User" required="true"/>
+    <property name="user" type="string" required="true"/>
+    <property name="webapp" type="string" required="true"/>
+  </entity>
+  <entity name="RoomCountBean">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">RoomCountBean</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="maxUser" type="integer" required="true"/>
+    <property name="roomCount" type="integer" required="true"/>
+    <property name="roomId" type="long" required="true"/>
+    <property name="roomName" type="string" required="true"/>
+  </entity>
+  <entity name="FlvRecordingMetaData">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">FlvRecordingMetaData</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="audioIsValid" type="boolean" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="flvRecording" type="FlvRecording" required="true"/>
+    <property name="flvRecordingMetaDataId" type="long" required="true"/>
+    <property name="freeTextUserName" type="string" required="true"/>
+    <property name="fullWavAudioData" type="string" required="true"/>
+    <property name="initialGapSeconds" type="integer" required="true"/>
+    <property name="inserted" type="date" required="true"/>
+    <property name="insertedBy" type="long" required="true"/>
+    <property name="interiewPodId" type="integer" required="true"/>
+    <property name="isAudioOnly" type="boolean" required="true"/>
+    <property name="isScreenData" type="boolean" required="true"/>
+    <property name="isVideoOnly" type="boolean" required="true"/>
+    <property name="recordEnd" type="date" required="true"/>
+    <property name="recordStart" type="date" required="true"/>
+    <property name="streamName" type="string" required="true"/>
+    <property name="streamReaderThreadComplete" type="boolean" required="true"/>
+    <property name="updated" type="date" required="true"/>
+    <property name="wavAudioData" type="string" required="true"/>
+  </entity>
+  <entity name="FLVRecordingReturn">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">FLVRecordingReturn</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="alternateDownload" type="string" required="true"/>
+    <property name="comment" type="string" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="fileHash" type="string" required="true"/>
+    <property name="fileName" type="string" required="true"/>
+    <property name="fileSize" type="long" required="true"/>
+    <property name="flvHeight" type="integer" required="true"/>
+    <property name="flvRecordingId" type="long" required="true"/>
+    <property name="flvWidth" type="integer" required="true"/>
+    <property name="height" type="integer" required="true"/>
+    <property name="inserted" type="date" required="true"/>
+    <property name="insertedBy" type="long" required="true"/>
+    <property name="isFolder" type="boolean" required="true"/>
+    <property name="isImage" type="boolean" required="true"/>
+    <property name="isInterview" type="boolean" required="true"/>
+    <property name="isPresentation" type="boolean" required="true"/>
+    <property name="isRecording" type="boolean" required="true"/>
+    <property name="organization_id" type="long" required="true"/>
+    <property name="ownerId" type="long" required="true"/>
+    <property name="parentFileExplorerItemId" type="long" required="true"/>
+    <property name="previewImage" type="string" required="true"/>
+    <property name="progressPostProcessing" type="integer" required="true"/>
+    <property name="recordEnd" type="date" required="true"/>
+    <property name="recordStart" type="date" required="true"/>
+    <property name="recorderStreamId" type="string" required="true"/>
+    <property name="room_id" type="long" required="true"/>
+    <property name="updated" type="date" required="true"/>
+    <property name="width" type="integer" required="true"/>
+  </entity>
+  <entity name="Room">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Room</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="allowFontStyles" type="boolean" required="true"/>
+    <property name="allowRecording" type="boolean" required="true"/>
+    <property name="allowUserQuestions" type="boolean" required="true"/>
+    <property name="appointment" type="boolean" required="true"/>
+    <property name="autoVideoSelect" type="boolean" required="true"/>
+    <property name="chatModerated" type="boolean" required="true"/>
+    <property name="chatOpened" type="boolean" required="true"/>
+    <property name="comment" type="string" required="true"/>
+    <property name="confno" type="string" required="true"/>
+    <property name="currentusers" type="Client[]" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="demoTime" type="integer" required="true"/>
+    <property name="externalRoomId" type="long" required="true"/>
+    <property name="externalRoomType" type="string" required="true"/>
+    <property name="filesOpened" type="boolean" required="true"/>
+    <property name="hideActionsMenu" type="boolean" required="true"/>
+    <property name="hideActivitiesAndActions" type="boolean" required="true"/>
+    <property name="hideChat" type="boolean" required="true"/>
+    <property name="hideFilesExplorer" type="boolean" required="true"/>
+    <property name="hideScreenSharing" type="boolean" required="true"/>
+    <property name="hideTopBar" type="boolean" required="true"/>
+    <property name="hideWhiteboard" type="boolean" required="true"/>
+    <property name="isAudioOnly" type="boolean" required="true"/>
+    <property name="isClosed" type="boolean" required="true"/>
+    <property name="isDemoRoom" type="boolean" required="true"/>
+    <property name="isModeratedRoom" type="boolean" required="true"/>
+    <property name="ispublic" type="boolean" required="true"/>
+    <property name="moderators" type="RoomModerator[]" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="numberOfPartizipants" type="long" required="true"/>
+    <property name="ownerId" type="long" required="true"/>
+    <property name="pin" type="string" required="true"/>
+    <property name="redirectURL" type="string" required="true"/>
+    <property name="roomOrganisations" type="RoomOrganisation[]" required="true"/>
+    <property name="rooms_id" type="long" required="true"/>
+    <property name="roomtype" type="RoomType" required="true"/>
+    <property name="showMicrophoneStatus" type="boolean" required="true"/>
+    <property name="sipEnabled" type="boolean" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+    <property name="waitForRecording" type="boolean" required="true"/>
+  </entity>
+  <entity name="State">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">State</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="code" type="integer" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="shortName" type="string" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="state_id" type="long" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+  </entity>
+  <entity name="Userdata">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Userdata</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="comment" type="string" required="true"/>
+    <property name="data" type="string" required="true"/>
+    <property name="data_id" type="long" required="true"/>
+    <property name="data_key" type="string" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+    <property name="user_id" type="long" required="true"/>
+  </entity>
+  <entity name="RoomType">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">RoomType</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="roomtypes_id" type="long" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+  </entity>
+  <entity name="RoomModerator">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">RoomModerator</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="isSuperModerator" type="boolean" required="true"/>
+    <property name="roomId" type="long" required="true"/>
+    <property name="roomModeratorsId" type="long" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+    <property name="user" type="User" required="true"/>
+  </entity>
+  <entity name="Address">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Address</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="additionalname" type="string" required="true"/>
+    <property name="adresses_id" type="long" required="true"/>
+    <property name="comment" type="string" required="true"/>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="email" type="string" required="true"/>
+    <property name="fax" type="string" required="true"/>
+    <property name="phone" type="string" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="states" type="State" required="true"/>
+    <property name="street" type="string" required="true"/>
+    <property name="town" type="string" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+    <property name="zip" type="string" required="true"/>
+  </entity>
+  <entity name="Organisation_Users">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Organisation_Users</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="isModerator" type="boolean" required="true"/>
+    <property name="organisation" type="Organisation" required="true"/>
+    <property name="organisation_users_id" type="long" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+    <property name="user" type="User" required="true"/>
+    <property name="user_id" type="long" required="true"/>
+  </entity>
+  <entity name="AsteriskSipUser">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">AsteriskSipUser</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="allow" type="string" required="true"/>
+    <property name="callbackextension" type="string" required="true"/>
+    <property name="context" type="string" required="true"/>
+    <property name="defaultuser" type="string" required="true"/>
+    <property name="fullcontact" type="string" required="true"/>
+    <property name="host" type="string" required="true"/>
+    <property name="id" type="long" required="true"/>
+    <property name="ipaddr" type="string" required="true"/>
+    <property name="lastms" type="integer" required="true"/>
+    <property name="md5secret" type="string" required="true"/>
+    <property name="name" type="string" required="true"/>
+    <property name="nat" type="string" required="true"/>
+    <property name="port" type="integer" required="true"/>
+    <property name="regseconds" type="long" required="true"/>
+    <property name="regserver" type="string" required="true"/>
+    <property name="secret" type="string" required="true"/>
+    <property name="type" type="string" required="true"/>
+    <property name="useragent" type="string" required="true"/>
+  </entity>
+  <entity name="FlvRecordingLog">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">FlvRecordingLog</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="exitValue" type="string" required="true"/>
+    <property name="flvRecording" type="FlvRecording" required="true"/>
+    <property name="flvRecordingLogId" type="long" required="true"/>
+    <property name="fullMessage" type="string" required="true"/>
+    <property name="inserted" type="date" required="true"/>
+    <property name="msgType" type="string" required="true"/>
+  </entity>
+  <entity name="OmTimeZone">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">OmTimeZone</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">UserService,RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="frontEndLabel" type="string" required="true"/>
+    <property name="ical" type="string" required="true"/>
+    <property name="inserted" type="date" required="true"/>
+    <property name="jname" type="string" required="true"/>
+    <property name="label" type="string" required="true"/>
+    <property name="omtimezoneId" type="long" required="true"/>
+    <property name="orderId" type="integer" required="true"/>
+  </entity>
+  <entity name="RoomOrganisation">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">RoomOrganisation</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="deleted" type="boolean" required="true"/>
+    <property name="organisation" type="Organisation" required="true"/>
+    <property name="room" type="Room" required="true"/>
+    <property name="rooms_organisation_id" type="long" required="true"/>
+    <property name="starttime" type="date" required="true"/>
+    <property name="updatetime" type="date" required="true"/>
+  </entity>
+  <entity name="Client">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Client</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">RoomService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <property name="VHeight" type="integer" required="true"/>
+    <property name="VWidth" type="integer" required="true"/>
+    <property name="VX" type="integer" required="true"/>
+    <property name="VY" type="integer" required="true"/>
+    <property name="allowRecording" type="boolean" required="true"/>
+    <property name="avsettings" type="string" required="true"/>
+    <property name="broadCastID" type="long" required="true"/>
+    <property name="canDraw" type="boolean" required="true"/>
+    <property name="canGiveAudio" type="boolean" required="true"/>
+    <property name="canRemote" type="boolean" required="true"/>
+    <property name="canShare" type="boolean" required="true"/>
+    <property name="connectedSince" type="date" required="true"/>
+    <property name="externalUserId" type="string" required="true"/>
+    <property name="externalUserType" type="string" required="true"/>
+    <property name="firstname" type="string" required="true"/>
+    <property name="flvRecordingId" type="long" required="true"/>
+    <property name="flvRecordingMetaDataId" type="long" required="true"/>
+    <property name="formatedDate" type="string" required="true"/>
+    <property name="id" type="long" required="true"/>
+    <property name="interviewPodId" type="integer" required="true"/>
+    <property name="isAVClient" type="boolean" required="true"/>
+    <property name="isBroadcasting" type="boolean" required="true"/>
+    <property name="isMod" type="boolean" required="true"/>
+    <property name="isRecording" type="boolean" required="true"/>
+    <property name="isScreenClient" type="boolean" required="true"/>
+    <property name="isSuperModerator" type="boolean" required="true"/>
+    <property name="language" type="string" required="true"/>
+    <property name="lastLogin" type="string" required="true"/>
+    <property name="lastname" type="string" required="true"/>
+    <property name="mail" type="string" required="true"/>
+    <property name="micMuted" type="boolean" required="true"/>
+    <property name="official_code" type="string" required="true"/>
+    <property name="organization_id" type="long" required="true"/>
+    <property name="picture_uri" type="string" required="true"/>
+    <property name="publicSID" type="string" required="true"/>
+    <property name="roomEnter" type="date" required="true"/>
+    <property name="roomRecordingName" type="string" required="true"/>
+    <property name="room_id" type="long" required="true"/>
+    <property name="scope" type="string" required="true"/>
+    <property name="screenPublishStarted" type="boolean" required="true"/>
+    <property name="server" type="Server" required="true"/>
+    <property name="sipTransport" type="boolean" required="true"/>
+    <property name="startRecording" type="boolean" required="true"/>
+    <property name="startStreaming" type="boolean" required="true"/>
+    <property name="streamPublishName" type="string" required="true"/>
+    <property name="streamPublishStarted" type="boolean" required="true"/>
+    <property name="streamid" type="string" required="true"/>
+    <property name="swfurl" type="string" required="true"/>
+    <property name="user_id" type="long" required="true"/>
+    <property name="usercolor" type="string" required="true"/>
+    <property name="userip" type="string" required="true"/>
+    <property name="username" type="string" required="true"/>
+    <property name="userport" type="integer" required="true"/>
+    <property name="userpos" type="integer" required="true"/>
+    <property name="zombieCheckFlag" type="boolean" required="true"/>
+  </entity>
+</model>

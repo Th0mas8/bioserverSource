@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- Edytor galerii używany w @see editElements -->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:gl="components.pages.admin_subpage.gallery.*"
+		 initialize="init();"
+		 horizontalCenter="0" textAlign="center">
+		
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.CollectionEvent;
+			import mx.events.ListEvent;
+		
+		
+		protected var myXML:XML;
+		
+		
+		/**
+		 * W inicjalizacji umożlwiamy 'przesun i upusc' na elementach w tabelce.
+		 */
+		protected function init():void
+		{
+			//umozliwiamy zmiany na elementach bezposrednio w galerii - drag&drop
+			showingGallery.horizontalList.dragEnabled=true;
+			showingGallery.horizontalList.dragMoveEnabled=true;
+			showingGallery.horizontalList.dropEnabled=true;
+		}
+		
+		
+		/**
+		 * Funkcja do ustawiania z zewnatrz XMLa z umiejscowieniem zdjęć.
+		 */
+		public function setXML (externalXML:XML):void
+		{
+			myXML = externalXML.copy();
+			//wywolujemy wewnetrzne zmienianie
+			changeXML(myXML);
+		}
+			
+		/**
+		 * Zwraca xml ze zdjęciami przerobiony na String.
+		 */
+		public function getXMLString ():String
+		{
+				return xmlListColl.toString();
+		}
+			
+		/**
+		 * Funkcja do ustawiania z zewnatrznego XMLList umiejscowienie zdjęć.
+		 */
+		public function setXMLListColl (externalXMLListColl:XMLListCollection):void
+		{
+				xmlListColl = externalXMLListColl;
+				//wywolujemy wewnetrzne zmienianie
+				updateGalleryXMLListColl(xmlListColl);
+		}
+		
+		
+		/**
+		 * ustawiamy wewnetrzna galerie; wywolac przy kazdym updacie listy XML 
+		 * tutaj ustawiamy za pomoca XMLa TYLKO 
+		 * alternatywa to ustawianie za pomoca XMLListColl
+		 */
+		protected function changeXML(changeXML:XML):void
+		{
+			var xmlList:XMLList = myXML.node;
+			xmlListColl = new XMLListCollection(xmlList);
+			updateGalleryXMLListColl(xmlListColl);
+			
+		}
+			
+		/**
+		 * Obsłga dodania do listy elementów dodatkowego zdjęcia.
+		 */
+		protected function addBtn_clickHandler(event:MouseEvent):void
+		{
+			var tmpXML:XML=<node>
+				 <label>
+					{labelTextInput.text}
+				</label>
+				 <thumbnailImage>
+					{thumbnailTextInput.text}
+				 </thumbnailImage>
+				 <fullImage>
+					{fullImageTextInput.text}
+				 </fullImage>
+				</node>;
+				
+					//dodajemy nowo stworzony element do XMLa
+				xmlListColl.addItem(tmpXML);
+				
+				//updatujemy tresc wewnetrznej galerii
+				updateGalleryXMLListColl(xmlListColl);
+			}
+			
+			/**
+			 * Przepisujemy uzyskany XMlList do wewnętrznej galerii, aby pokazać zmianę.
+			 */
+			protected function updateGalleryXMLListColl(list:XMLListCollection):void
+			{
+				showingGallery.setGalleryXMLListCollection(list);
+			}
+
+			
+			/**
+			 * Rozpoczęcie usuwania elementu z galerii - upewniające pytanie
+			 */
+			protected function deleteBtn_clickHandler(event:MouseEvent):void
+			{
+				if(dataGrid.selectedIndex != -1)
+					
+					Alert.show('Do you want delete item: ' + dataGrid.selectedItem.label ,'Delete' , 3, this, closeDelAlert)
+					
+			}
+			
+			/**
+			 * Zakończenie usuwania elementu - aktualne usuwanie w przypadku potwierdzeniea przez użytkownika takiej chęci.
+			 */
+			protected function closeDelAlert(event:CloseEvent):void{
+				if(event.detail == Alert.YES)
+					xmlListColl.removeItemAt(dataGrid.selectedIndex);
+			}
+
+
+			/**
+			 * Kliknięcie na jeden z elementów w tabeli spowoduje załadowanie go do edycji.
+			 */
+			protected function dataGrid_changeHandler(event:ListEvent):void
+			{
+				//jezeli nacisniesz na datagrid to automatycznie zmienisz element wyswietlany w galerii
+				showingGallery.horizontalList.selectedIndex = dataGrid.selectedIndex;
+				// i to co w edicie sie znajduje
+				labelEditTextInput.text = dataGrid.selectedItem.label;
+				thumbnailEditTextInput.text = dataGrid.selectedItem.thumbnailImage;
+				fullEditImageTextInput.text = dataGrid.selectedItem.fullImage;
+				
+			}
+
+			/**
+			 * Obsługa edytowania elementu w galerii.
+			 */
+			protected function editBtn_clickHandler(event:MouseEvent):void
+			{
+			//	xmlListColl.elements("*")[dataGrid.selectedIndex+1].label = labelEditTextInput.text;
+				xmlListColl[dataGrid.selectedIndex].label= labelEditTextInput.text;
+				xmlListColl[dataGrid.selectedIndex].thumbnailImage= thumbnailEditTextInput.text;
+				xmlListColl[dataGrid.selectedIndex].fullImage= fullEditImageTextInput.text;
+			}
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:XMLListCollection id="xmlListColl" />
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" horizontalAlign="center">
+	
+	<gl:galleryItem id="showingGallery"  textAlign="center"/>
+	
+	<mx:DataGrid id="dataGrid"
+				 dataProvider="{xmlListColl}"
+				 width="100%"
+				 rowCount="{xmlListColl.length + 1}"
+				 dragEnabled="true"
+				 dragMoveEnabled="true"
+				 dropEnabled="true"
+				 change="dataGrid_changeHandler(event)"
+				 >
+		<mx:columns>
+			<mx:DataGridColumn id="labelCol"
+							   dataField="label"
+							   headerText="Label:" 
+							   sortable="false"/>
+			<mx:DataGridColumn id="thumbnailImageCol"
+							   dataField="thumbnailImage"
+							   headerText="Thumbnail Image:" 
+							   sortable="false"/>
+			<mx:DataGridColumn id="fullImageCol"
+							   dataField="fullImage"
+							   headerText="Full Image:" 
+							   sortable="false"/>
+		</mx:columns>
+	</mx:DataGrid>
+
+		<s:BorderContainer borderWeight="4" backgroundAlpha="0" cornerRadius="1" height="70">
+			<s:VGroup horizontalAlign="center" horizontalCenter="0" width="100%" paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5" top="5" bottom="4.650003" verticalCenter="0">
+				
+				<s:HGroup gap="5" verticalAlign="middle">
+					<s:Label text="Label:" />
+					<s:TextInput id="labelEditTextInput" text="" />					
+					<s:Label text="Thumbnail:" />
+					<s:TextInput id="thumbnailEditTextInput" text="" />					
+					<s:Label text="Full Image:" />
+					<s:TextInput id="fullEditImageTextInput" text="" />
+				</s:HGroup>
+				<s:Button id="editBtn" label="EDIT SELECTED" click="editBtn_clickHandler(event)" bottom="5"/>
+			</s:VGroup>
+		</s:BorderContainer>	
+		
+		
+	<s:BorderContainer borderWeight="4" backgroundAlpha="0" cornerRadius="1" height="70">
+	<s:VGroup horizontalAlign="center" horizontalCenter="0" width="100%" paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5" top="5" bottom="4.650003" verticalCenter="0">
+		
+			<s:HGroup gap="5" verticalAlign="middle">
+				<s:Label text="Label:" />
+				<s:TextInput id="labelTextInput" text="mojLabel" />
+				
+				<s:Label text="Thumbnail:" />
+				<s:TextInput id="thumbnailTextInput" text="fw_appicon-tn.gif" />
+				
+				<s:Label text="Full Image:" />
+				<s:TextInput id="fullImageTextInput" text="fw_appicon.jpg" />
+			</s:HGroup>
+			<s:Button id="addBtn" label="ADD NEW" click="addBtn_clickHandler(event)" bottom="5"/>
+	</s:VGroup>
+	</s:BorderContainer>	
+		
+		
+		<s:Button id="deleteBtn" label="Delete Selected" click="deleteBtn_clickHandler(event)" />
+		
+	</s:VGroup>
+	
+	
+</s:Group>

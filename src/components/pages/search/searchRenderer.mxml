@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				width="100%">
+
+
+	<fx:Script>
+		<![CDATA[	
+			import mx.events.FlexEvent;
+			
+			import spark.utils.TextFlowUtil;
+			
+			public function get articleid():String
+			{
+				return data.articleid;
+			}
+
+			
+			protected function hgr_mouseOverHandler(event:MouseEvent):void
+			{
+					moveEffectOver.play();
+			}
+			
+			protected function hgr_mouseOutHandler(event:MouseEvent):void
+			{
+					moveEffectOut.play();
+			}
+			
+			protected function label1_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new DataEvent("ArticleChoosed", true, true,data.articleid));	
+			}
+
+
+			protected function richtext1_creationCompleteHandler(event:FlexEvent):void
+			{
+				var tok:Array = data.searchText.split(/\s+/);
+				var str:String = data.result;
+				for (var i:int=0;i<tok.length;i++)
+				{
+					var myPattern:RegExp = new RegExp(tok[i],"gi");	
+					str=str.replace(myPattern, "<span fontWeight=\"bold\">"+tok[i]+"</span>"); 
+				}
+				searchResult.textFlow = TextFlowUtil.importFromString(str);
+
+				//searchResult.text = data.searchText;
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<s:Move3D id="moveEffectOver" target="{hgr}" 
+				  zTo="-30"/>
+		<s:Move3D id="moveEffectOut" target="{hgr}" 
+				  zTo="0"/>
+	</fx:Declarations>
+
+	
+	<fx:Metadata>
+		[DataEvent(name="ArticleChoosed")]
+	</fx:Metadata>
+
+	
+	<s:VGroup id="hgr" width="100%" gap="10" 
+			  mouseOver="hgr_mouseOverHandler(event)"
+			  mouseOut="hgr_mouseOutHandler(event)"
+			  click="label1_clickHandler(event)"
+			  useHandCursor="true" buttonMode="true" >
+		<mx:Spacer height="10"/>
+		<s:Label id="label1" text="{data.articlename}" textAlign="left" left="100" paddingLeft="100" width="80%"
+				 fontSize="18" fontWeight="bold" color="#FFFFFF"/>
+		<s:RichText id="searchResult" width="90%" textAlign="justify" left="50" paddingLeft="50" verticalAlign="justify" creationComplete="richtext1_creationCompleteHandler(event)" color="#FFFFFF"/>
+		<mx:Spacer height="10"/>
+		<s:VGroup  horizontalAlign="center" width="100%" verticalAlign="bottom">
+			<s:Line width="80%">
+				<s:stroke>
+					<s:SolidColorStroke color="#07240a" weight="3"/>
+				</s:stroke>
+			</s:Line>
+		</s:VGroup>
+		
+	</s:VGroup>
+</s:ItemRenderer>

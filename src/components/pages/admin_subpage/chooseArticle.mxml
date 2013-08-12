@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- 
+Wyświetlanei wszystkich artykułów na stronie w postaci drzewa. Możliwość ich edycji i podglądu jak będzie zbudowane ostateczne menu.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 initialize="init()"
+		 width="100%">
+	<fx:Script>
+		<![CDATA[
+			import components.pages.admin_subpage.treeEditor;
+			
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.effects.easing.Elastic;
+			import mx.events.CloseEvent;
+			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.CursorManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			private var XMLFromDataBase:XML;
+			
+			[Bindable]
+			private var TreeArticleXML:XML = <articles>
+				</articles>;
+			[Bindable]
+			private var data:XMLListCollection
+			
+			[Bindable]
+			private var nazwaChild1:String;
+			
+			//zmienna uzywana przy tworzeniu dzieci/podstron bez elementow nizszych
+			private var tmpXMLParent:XML ;
+			private var tmpXML:XML ;
+			
+			private var dragAndDropID:String;
+			
+			
+			private var ileUsuwamy:int = 0;
+			
+			private var deleteParentXML:XML;
+			private var deleteXML:XML;
+			private var nazwaNodeSelected:String;
+			
+			/**
+			 * Funkcja inicjująca obiekt - ustawiamy adresy skryptów php i możliwość przeciągania artykułów w drzewie.
+			 */
+			protected function init():void
+			{					
+				CursorManager.setBusyCursor();
+				saveArticles.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"saveArticles.php";
+				deleteArticles.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"deleteArticles.php";
+				addNewChild.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"addNewChild.php";
+				pobierzArtykuly.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"pobArtykuly.php";
+				pobierzArtykuly.send();
+				XMLtree1.dragEnabled = true;
+				XMLtree1.dragMoveEnabled = true;
+				XMLtree1.dropEnabled = true;
+			}
+			
+			/**
+			 * Funkcja tworząca labele nazw w drzewie XMLowym.
+			 */
+			private function treeLabel(item:Object):String {
+				var node:XML = XML(item);
+				
+				if( node.localName() == "node" )
+					return node.@nazwa;
+				if( node.localName() == "podstrona" )
+					return node.@id;
+				if( node.localName() == "articles" )
+					return "root";
+				
+				return "error:unknown name of the node - " + node.localName().toString();
+			}
+			
+			/**
+			 * Funkcja rekurencyjna, z bazy danych otrzymujemy jedynie listę głównych elementów 1-poziomu
+			 * , dzięki tej funkcji dodajemy dzieci do tego elementu, tworząc z listy myXML -> strukturę drzewa w przekazywanym parametrze zmienna;
+			 * @param zmienna - XML przekazywany do funkcji, w której ostatecznie znajduję się całe drzewo artykułów
+			 */
+			protected function sprawdzicDzieci(zmienna:XML):void
+			{
+				//ustawiamy flagę dirty - bedzie uzywana do sprawdzenia czy nalezy zapisac dany node/child w bazie danych
+				zmienna.@dirty='false';
+				
+				for each (var podzmienna:XML in zmienna.podstrona)
+				{
+					//myXML - XML ktory dostalismy z serwera - w nastepnej funkcji wywolywany
+					var tmp:XMLList = XMLFromDataBase.node.(attribute('id')==podzmienna.attribute('id'))
+						//zazwyczaj powinien znalezc tylko jeden element, id sa unikalne, ale musi zwracac jako XMLList wiec odnosze sie tylko do pierwszego elementu
+						delete (zmienna.podstrona.(attribute('id')==podzmienna.attribute('id')))[0];
+					//uruchamiamy funkcje rekurencyjnie
+					sprawdzicDzieci(tmp[0]);
+					
+					zmienna.appendChild(tmp[0]);
+				}
+				
+			}
+			
+			/**
+			 * Obsługa artykułów pobranych z bazy danych - zamiana listy artykułów w drzewo artykułów.
+			 */
+			protected function pobierzArtykuly_resultHandler(event:ResultEvent):void
+			{
+				
+				CursorManager.removeBusyCursor();
+				//XML otrzymany z bazy danych ktory jest listą
+				XMLFromDataBase = XML(event.result);
+				
+				TreeArticleXML = <articles>
+				</articles>;
+				
+				for each (var prop:XML in XMLFromDataBase.node.(attribute('rodzaj') == 'main'))
+				{
+					sprawdzicDzieci(prop);
+					
+					TreeArticleXML.appendChild(prop);
+				}
+				
+				tempMenu.dataProvider = TreeArticleXML.node;
+				
+				dispatchEvent(new DataEvent("treeItemChanged",true,true,getIndex().toString()));
+			}
+			
+			/**
+			 * Tutaj obsługiwane są wszelkie błędy w trakcie łączenia się z bazą danych. 
+			 */
+			protected function faultHandler(event:FaultEvent):void
+			{
+				CursorManager.removeBusyCursor();
+				Alert.show(event.fault.faultString,"Article - Fault at communicating with DB");
+			}
+			
+			/**
+			 * Handler odpowiedzialny za zmianę załadowanego artykułu w momencie kliknnikęcia na inny.
+			 */
+			protected function XMLtree1_changeHandler(event:ListEvent):void
+			{
+				var tmpXML:XML=XML(XMLtree1.selectedItem);
+				
+				dispatchEvent(new DataEvent("treeItemChanged",true,true,tmpXML.attribute('id')));
+				nazwaNodeSelected = tmpXML.attribute('nazwa');
+				//rodzajNodeSelected.text = tmpXML.attribute('rodzaj');
+				idNodeSelected.text = tmpXML.attribute('id');
+			}
+			
+			/**
+			 * Funkcja używana w trakcie zapisywania zmian do bazy danych. 
+			 * Sprawdzamy czy dany węzeł w XMLu został zmodyfikowany, jeśli tak, zapisujemy go i wszystkie jego 'dzieci' - funkcja rekurencyjna;
+			 */
+			private function przejrzyjDanyPodXMLDlaStringa(zmienna:XML):void
+			{
+				
+				var tmpPodstrony:String = new String();
+				var iter:int = 0;
+				
+				//zapisujemy zmiany jedynie jesli ustawilismy flage
+				if(zmienna.@dirty == 'true')
+				{
+					idListSend.text=idListSend.text.concat(zmienna.attribute("id").toString() + '$$');
+					nazwaListSend.text = nazwaListSend.text.concat(zmienna.attribute("nazwa").toString() + '$$');
+					
+					
+					
+					//sprawdzamy wszytkie id podstron ktore w danym mainie sie otwieraja
+					for each (var prop:XML in zmienna.node)
+					{					
+						tmpPodstrony = tmpPodstrony.concat(prop.attribute("id").toString() + 'a');
+						iter++;
+					}
+					//jezeli jestesmy na najwyzszym poziomie to rodzaj to jest main
+					if((zmienna.parent()).localName()=='articles')
+					{
+						rodzajListSend.text=rodzajListSend.text.concat('main' + '$$');
+					}
+					else
+					{
+						//jesli nie bylo dzieci w parent w poprzedniej liscie for each to ten element jest dzieckiem
+						if(iter==0)
+						{
+							rodzajListSend.text=rodzajListSend.text.concat('child' + '$$');
+						}
+						else
+						{
+							rodzajListSend.text=rodzajListSend.text.concat('node' + '$$');
+						}
+					}
+					
+					//usuwamy nadmiarowy, ostatni 'a'
+					tmpPodstrony = tmpPodstrony.substring(0,tmpPodstrony.length-1);
+					
+					podstronyListSend.text = podstronyListSend.text.concat(tmpPodstrony + '$$');
+				}
+				
+				//przegladamy wszystkie dzieci, nizej, rekurencyjnie
+				for each (var prop2:XML in zmienna.node)
+				{
+					przejrzyjDanyPodXMLDlaStringa(prop2);					
+				}
+				
+			}
+			
+			/**
+			 * Zapisujemy wszystkie artykuły w menu do stringa, ktory bedzie wyslany pozniej do bazy danych w innej funkcji.
+			 */			
+			private function zapiszWszystkieArticlesWString():void
+			{
+				idListSend.text = "";
+				nazwaListSend.text = "";
+				podstronyListSend.text = "";
+				rodzajListSend.text = "";
+				
+				for each (var prop3:XML in TreeArticleXML.node)
+				{
+					przejrzyjDanyPodXMLDlaStringa(prop3);	
+				}
+				
+				idListSend.text = idListSend.text.substring(0,idListSend.text.length-2);
+				nazwaListSend.text = nazwaListSend.text.substring(0,nazwaListSend.text.length-2);
+				podstronyListSend.text = podstronyListSend.text.substring(0,podstronyListSend.text.length-2);
+				rodzajListSend.text = rodzajListSend.text.substring(0,rodzajListSend.text.length-2);
+				
+			}
+			
+			
+			/**
+			 * Obsługa przycisku zapisującego całą zawartosć menu - używamy funkcji zapisującej menu w string i wysyłamy do bazy danych.
+			 */
+			protected function saveArticlesBtn_clickHandler(event:MouseEvent):void
+			{
+				
+				zapiszWszystkieArticlesWString();
+				CursorManager.setBusyCursor();
+				saveArticles.send();
+			}
+			
+			/**
+			 * Wysylamy informacje o nowym dziecku na serwer.
+			 */
+			protected function createChildBtn_clickHandler(event:MouseEvent):void
+			{
+				tmpXML =XML(XMLtree1.selectedItem);
+				
+				if(tmpXML!= null)
+				{
+					CursorManager.setBusyCursor();
+					addNewChild.send();
+				}
+				else
+				{
+					Alert.show('You cant add child here' ,'ADD Child failed')
+				}
+			}
+			
+			/**
+			 * Dodajemy nową podstronę do danej strony w menu (dziecko).
+			 */
+			protected function addNewChild_resultHandler(event:ResultEvent):void
+			{
+				var addXML:XML = XML(event.result);
+				var addList:XMLList = addXML.id;
+				
+				
+				var newChild:XML = <node/>;
+				
+				//id ktory otrzymalismy z bazy danych od swiezo wlozonego elementu
+				newChild.@id = addList[0].toString();
+				
+				
+				newChild.@nazwa = nazwaChild1;
+				newChild.@rodzaj = 'child';
+				
+				
+				newChild.@dirty = 'true';
+				tmpXML.@dirty = 'true';
+				
+				
+				tmpXML.appendChild(newChild);
+				
+				
+				//zapisujemy wszystkie artykuly, zeby zapisalo sie ktory rodzic posiada w podstronach do dziecko
+				zapiszWszystkieArticlesWString();
+				saveArticles.send();
+			}
+			
+			/**
+			 * Zapisujemy zmianę nazwy danego węzła w menu.
+			 */
+			protected function saveEditBtn_clickHandler(event:MouseEvent):void
+			{
+				XMLtree1.selectedItem.@dirty = 'true';
+				XMLtree1.selectedItem.@nazwa = nazwaNodeSelected;
+			}
+			
+			/**
+			 * Obsługa zakończenia zapisywania artykułów na serwerze.
+			 */
+			protected function saveArticles_resultHandler(event:ResultEvent):void
+			{
+				Alert.show("Correct upload","Upload");
+				//po wyslaniu danych warto przeladowac zawartosc tabelki z elementami
+				pobierzArtykuly.send();
+			}
+			
+			/**
+			 * Przed usunięciem danego węzła w menu zapisujemy informacje o wszystkich podstronach z tego węzła.
+			 */
+			protected function sprIdDelete(zmienna:XML):void
+			{
+				idListDeleteSend.text=idListDeleteSend.text.concat(zmienna.attribute("id").toString() + 'a');
+				ileUsuwamy++;
+				//sprawdzamy wszytkie id podstron ktore w danym mainie sie otwieraja
+				for each (var prop:XML in zmienna.node)
+				{					
+					sprIdDelete(prop);
+				}
+			}
+			
+			/**
+			 * Przed usunięciem sprawdzimy czy uzytkownik na pewno chce usunac wszystkie elementy, 
+			 * a nastepnie wpiszemy id usuwanych elementow i podelementów do stringa który przeslemy do php.
+			 */
+			protected function deleteBtn_clickHandler(event:MouseEvent):void
+			{
+				idListDeleteSend.text = '';
+				deleteXML = XML(XMLtree1.selectedItem);
+				deleteParentXML = deleteXML.parent();
+				
+				
+				var list:XMLList = deleteXML.node;
+				ileUsuwamy = 0;
+				
+				idListDeleteSend.text=idListDeleteSend.text.concat(deleteXML.attribute("id").toString() + 'a');
+				ileUsuwamy++;
+				//sprawdzamy wszytkie id podstron ktore w danym mainie sie otwieraja
+				for each (var prop:XML in deleteXML.node)
+				{					
+					sprIdDelete(prop);
+				}
+				
+				idListDeleteSend.text = idListDeleteSend.text.substring(0,idListDeleteSend.text.length-1);
+				
+				Alert.show('Do you want delete ' + ileUsuwamy + ' subpages ?' ,'Delete' , 3, this, closeDelAlert)
+				
+				
+			}
+			
+			/**
+			 * Co sie dzieje jak nacisniesz okno potwierdzajace usuniecie
+			 */
+			protected function closeDelAlert(event:CloseEvent):void
+			{
+				if(event.detail == Alert.YES)
+				{					
+					delete (TreeArticleXML.descendants().(attribute('id')==deleteXML.attribute('id')))[0];
+					//wszystko nizej od elementu usuwanego jest tez usuwane, wiec musimy po prostu od nowa wyliczyc rodzica
+					deleteParentXML.@dirty = 'true';
+					CursorManager.setBusyCursor();
+					deleteArticles.send();
+				}
+			}
+			
+			/**
+			 * Obsluga zakończenia usuwania danego artykułu - pokazane okna potwierdzenia usunięcia 
+			 * i ponowne zapisanie wszystkich artykułow - aby rozwiązac problem zniknięcia podstron danej strony.
+			 */
+			protected function deleteArticles_resultHandler(event:ResultEvent):void
+			{
+				Alert.show("Correct Delete","Delete");
+				
+				//zawsze odpalac sprawdzenie stringow przed saveArticles
+				zapiszWszystkieArticlesWString();
+				saveArticles.send();
+			}
+			
+			/**
+			 * Zwracamy indeks z bazy danych wybranego artykułu.
+			 */
+			public function getIndex():int
+			{
+				return (XML(XMLtree1.selectedItem)).@id;
+				
+			}
+			
+			/**
+			 * Zamiana miejsca artykułów ze sobą powoduje ustawienie flagi dirty - która sygnalizuje konieczność zapisania zmian danego artykułu.
+			 */
+			protected function XMLtree1_dragEnterHandler(event:DragEvent):void
+			{
+				(XML(XMLtree1.selectedItem)).@dirty = 'true';
+				
+				//zapisujemy ID elementu ktory wlasnie prznosimy, zeby go znalezc po zdropowaniu
+				dragAndDropID = (XML(XMLtree1.selectedItem)).@id;
+				((XML(XMLtree1.selectedItem)).parent()).@dirty = 'true'; 
+			}
+			
+			/**
+			 * Ustawiamy flagę dirty także w miejscu upuszczenia przeciąganego elementu.
+			 */
+			protected function XMLtree1_dragCompleteHandler(event:DragEvent):void
+			{
+				//szukamy elementu ktory wlasnie upuscilismy, ID sa unikalne wiec mozemy wziac element 0
+				var selected:XMLList = TreeArticleXML.descendants().(attribute("id") == dragAndDropID); 
+				var zmienna:XML = selected[0].parent();
+				
+				zmienna.@dirty = 'true';
+			}
+			
+			
+			/**
+			 * Podwójne naciśnięcie na drzewo powoduje pojawienie się okienka edycji danego elementu.
+			 */
+			protected function tree1_doubleClickHandler(event: ListEvent ):void
+			{
+				Tree( event.target ).editedItemPosition = { columnIndex: 0, rowIndex: event.rowIndex };
+			}
+			
+			/**
+			 * Wpisanie tekstu do pomocniczego textarea w celu debugowania.
+			 */
+			protected function debug_creationCompleteHandler(event:FlexEvent):void
+			{
+				debug.text = FlexGlobals.topLevelApplication.getPHPScriptsPath();
+			}
+			
+			// Define the event listener for the itemEditBeginning event 
+			// to disable editing when the user selects 
+			// the top node in the tree.
+			private function disableEditing(event:ListEvent):void {
+				if(event.rowIndex==0) {  
+					event.preventDefault(); 
+				}
+			}
+			
+			// Define the event listener for the itemEditEnd event 
+			// to copy the updated data back to the data provider 
+			// of the Tree control.
+			public function processData(event:ListEvent):void {    
+				// Disable copying data back to the control.
+				event.preventDefault();				
+				// Get new phone number from editor.
+				//myTree.editedItemRenderer.data.phone =
+				//	TreeEditor(event.currentTarget.itemEditorInstance).contactPhone.text;
+				
+				//var newName:String;
+				//newName = treeEditor(event.currentTarget.itemEditorInstance).newName;
+				//Alert.show(newName,"asd");
+				
+				// Close the cell editor.
+				//XMLtree1.destroyItemEditor(); 
+				
+				// Notify the list control to update its display.
+				//XMLtree1.dataProvider.notifyItemUpdate(XMLtree1.editedItemRenderer);
+			}  
+			
+			protected function XMLtree1_itemClickHandler(event:ListEvent):void
+			{
+				if (event.rowIndex > 6) XMLtree1.editorYOffset = -100;
+				else XMLtree1.editorYOffset = 30;
+			}
+			
+			
+			protected function XMLtree1_creationCompleteHandler(event:FlexEvent):void
+			{
+				XMLtree1.addEventListener("nameChanged",nameChangedHandler);
+				XMLtree1.addEventListener("childCreated",childCreatedHandler);
+				XMLtree1.addEventListener("articleDeleted",articleDeletedHandler);
+			}
+			
+			private function nameChangedHandler(event:DataEvent):void
+			{
+				XMLtree1.selectedItem.@dirty = 'true';
+				XMLtree1.selectedItem.@nazwa = event.data;
+				
+				
+				XMLtree1.destroyItemEditor(); 
+				XMLtree1.dataProvider.notifyItemUpdate(XMLtree1.editedItemRenderer);
+				
+			}
+			
+			private function childCreatedHandler(event:DataEvent):void
+			{
+				nazwaChild1 = event.data;
+				tmpXML =XML(XMLtree1.selectedItem);
+				if(tmpXML!= null)
+				{
+					CursorManager.setBusyCursor();
+					addNewChild.send();
+				}
+				else
+				{
+					Alert.show('You cant add child here' ,'ADD Child failed')
+				}
+				
+				XMLtree1.destroyItemEditor(); 
+				XMLtree1.dataProvider.notifyItemUpdate(XMLtree1.editedItemRenderer);
+			}
+			
+			private function articleDeletedHandler(event:DataEvent):void
+			{
+				deleteBtn_clickHandler(null);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:HTTPService id="pobierzArtykuly"
+					   result="pobierzArtykuly_resultHandler(event)"
+					   fault="faultHandler(event)"
+					   resultFormat="e4x"/>
+		
+		<mx:HTTPService id="addNewChild" 
+						useProxy="false" 
+						method="POST"
+						result="addNewChild_resultHandler(event)"
+						fault="faultHandler(event)"
+						resultFormat="e4x">
+			
+			
+			<mx:request xmlns="">
+				<nazwa>{nazwaChild1}</nazwa>
+			</mx:request>
+			
+		</mx:HTTPService>
+		
+		<!--zmienne do wysylania danych do zapisania do php i do bazy danych -->
+		<mx:Label id="idListSend"/>
+		<mx:Label id="nazwaListSend"/>
+		<mx:Label id="podstronyListSend"/>
+		<mx:Label id="rodzajListSend"/>
+		
+		
+		<mx:HTTPService id="saveArticles" 
+						useProxy="false" 
+						method="POST"
+						result="saveArticles_resultHandler(event)"
+						fault="faultHandler(event)">
+			
+			
+			<mx:request xmlns="">
+				<id>{idListSend.text}</id>
+				<nazwa>{nazwaListSend.text}</nazwa>
+				<podstrony>{podstronyListSend.text}</podstrony>
+				<rodzaj>{rodzajListSend.text}</rodzaj>
+			</mx:request>
+			
+		</mx:HTTPService>
+		
+		<!--zmienne do wysylania danych do usuniecia danych z bazy danych -->
+		<mx:Label id="idListDeleteSend"/>
+		
+		<mx:HTTPService id="deleteArticles" 
+						useProxy="false" 
+						method="POST"
+						result="deleteArticles_resultHandler(event)"
+						fault="faultHandler(event)">
+			
+			
+			<mx:request xmlns="">
+				<id>{idListDeleteSend.text}</id>
+			</mx:request>
+			
+		</mx:HTTPService>
+		
+	</fx:Declarations>
+	
+	<fx:Metadata>
+		[DataEvent(name="treeItemChanged")]
+	</fx:Metadata>
+	<s:BorderContainer id="articles" width="100%" borderVisible="true" borderWeight="3">
+		
+		<s:VGroup width="100%" horizontalAlign="center" y="0" x="0">
+			<!---
+			Główne drzewo w którym są wyświetlane wszystkie artykuły.
+			-->
+			<mx:Tree id="XMLtree1" width="75%" height = "300"
+					 dataProvider="{TreeArticleXML}"
+					 labelFunction="treeLabel"
+					 labelField="@nazwa"
+					 change="XMLtree1_changeHandler(event)"
+					 dragEnter="XMLtree1_dragEnterHandler(event)"
+					 dragComplete="XMLtree1_dragCompleteHandler(event)"
+					 
+					 doubleClickEnabled="true"
+					 itemDoubleClick="tree1_doubleClickHandler(event)"
+					 
+					 openEasingFunction="mx.effects.easing.Elastic.easeInOut"
+					 openDuration="500"
+					 editable="true"  
+					 itemEditor="components.pages.admin_subpage.treeEditor" 
+					 
+					 itemClick="XMLtree1_itemClickHandler(event)"
+					 editorHeightOffset="70" editorWidthOffset="-280" 
+					 editorXOffset="70" editorYOffset="30" 
+					 itemEditBeginning="disableEditing(event)" 
+					 itemEditEnd="processData(event)"
+					 creationComplete="XMLtree1_creationCompleteHandler(event)"
+					 />
+			
+			<!---
+			Pomocnicze textarea potrzebne w debugowaniu.
+			-->
+			<s:TextArea visible="false" id="debug" width="526" x="85" height="50" creationComplete="debug_creationCompleteHandler(event)" includeInLayout="false"/>
+			
+			<!--
+			<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="center">
+			<s:Label text="Id: "/>
+			<s:TextInput id="idNodeSelected" editable="false"/>
+			<s:Label text="Nazwa: "/>
+			<s:TextInput id="nazwaNodeSelected"/>
+			<s:Label text="Rodzaj: "/>
+			<s:TextInput id="rodzajNodeSelected" editable="false"/>
+			<s:Button id="saveEditBtn" label="EDIT OFFLINE" click="saveEditBtn_clickHandler(event)" />
+			
+			</s:HGroup>
+			
+			<s:VGroup horizontalAlign="center">
+			<s:HGroup verticalAlign="middle">
+			<s:Label text="Nazwa: "/>
+			<s:TextInput id="nazwaChild"/>
+			<s:Button id="createChildBtn" label="CREATE CHILD" click="createChildBtn_clickHandler(event)"/>
+			</s:HGroup>
+			<s:Button id="deleteBtn" label="DELETE SELECTED ARTICLE" click="deleteBtn_clickHandler(event)"/>
+			</s:VGroup>
+			-->
+			<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="center">
+				<s:Label text="Article ID: "/>
+				<s:TextInput id="idNodeSelected" editable="false"/>
+			</s:HGroup>
+			
+			<s:Button id="saveArticlesBtn" label="SAVE Articles ONLINE" click="saveArticlesBtn_clickHandler(event)" color="red" />
+			<!--- Menu próbne do sprawdzania jak będzie wyglądać menu z nowymi elementami  -->
+			<mx:MenuBar id="tempMenu" labelField="@nazwa"/>
+		</s:VGroup>
+	</s:BorderContainer>
+	
+</s:Group>
+

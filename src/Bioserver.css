@@ -1,0 +1,81 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+
+global
+{
+	text-align: center;
+	/*chrome-color: #206025;
+	roll-over-color: #137017;*/
+	chrome-color: #137017;
+	roll-over-color: #206025;
+	selection-color: #267220;
+	focus-color: #7DEF7D;
+	symbol-color: #FFFFFF;
+	color: #ffffff;
+}
+
+mx|Alert
+{
+	color: #000000;
+}
+
+
+mx|ToolTip {
+	backgroundColor: white;
+	backgroundAlpha: 1.0;
+	cornerRadius: 20;
+	color: black;
+}
+
+mx|TextInput {
+	content-background-color: #ffffff;
+	color: black;
+	
+}
+
+mx|TextArea {
+	content-background-color: #ffffff;
+	color: black;
+}
+
+/*
+.search
+{
+	text-roll-over-color: #ffffff;
+	roll-over-color: #328755,#70E578;
+	selection-color: #70E578;
+	fontSize: 16;
+	font-weight: bold;
+	backgroundSkin:Embed("assets/search.png");  
+} 
+*/
+mx|LinkButton {
+	text-roll-over-color: #ffffff;
+	roll-over-color: #328755,#70E578;
+	selection-color: #70E578;
+	fontSize: 13;
+}
+
+.menuBar
+{
+	fontSize: 16;
+	font-weight: bold;
+ 
+}      
+
+.search
+{
+	fontSize: 16;
+	font-weight: bold;
+	backgroundSkin:Embed("assets/search.png");  
+} 
+
+
+.popUpMenu
+{
+	fontSize: 14;
+	color: #ffffff;
+	alternating-item-colors: #47a83f,#47a83f;
+}

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.CursorManager;
+			
+			public var file:FileReference;
+			private var pdfFilter:FileFilter = new FileFilter("PDFs converted to SWFs (*.swf)", "*.swf");
+			private var fileNameServer:String;
+			
+			public function selectFile():void 
+			{
+				file = new FileReference();
+				file.addEventListener(Event.SELECT, fileSelected);
+				file.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, uploadDataComplete);
+				file.addEventListener(Event.COMPLETE, uploadComplete);
+				file.addEventListener(IOErrorEvent.IO_ERROR, handleError);
+				file.browse(new Array (pdfFilter));
+			}
+			
+			public function handleError(event:IOErrorEvent):void 
+			{
+				Alert.show("Error occured...", "Error",Alert.OK);
+			}
+			
+			
+			public function fileSelected(event:Event):void
+			{
+				file = FileReference(event.target);
+				//max rozmiar 5MB
+				if (file.size < 1024*5000) {
+					pdfSrc.text = file.name;
+					//	Alert.show("Following file selected: "+ file.name  + " ", "OK",Alert.OK);
+					uploadPDF.enabled=true;
+				} 
+				else 
+				{
+					pdfSrc.text = "";
+					Alert.show("File is too big...", "Error",Alert.OK);
+				}
+			}
+			
+			public function uploadDataComplete(event:DataEvent):void 
+			{
+				var result:XML = new XML(event.data);
+				var message:String;
+				if (result.status=="OK") {
+					fileNameServer = FlexGlobals.topLevelApplication.getPDFPath()+result.filename;
+					message = "Upload Data Complete RESULT: " + result.toString()  + " STATUS: " + result.status + "MESSAGE: " + result.message + "SERVER FILE NAME: " + fileNameServer;
+					Alert.show("File has been uploaded succesfully " + message, "OK",Alert.OK);			
+					
+					//insertPDF with fileNameServer into pdfViewer
+					//or dispatch data event with filenameserver as data
+					dispatchEvent(new DataEvent("PDFUploaded", true, true,fileNameServer));	
+					
+					uploadPDF.enabled=false; 
+					pdfSrc.text =""; 
+				}
+				else {
+					fileNameServer = "";
+					message = "Upload Data Complete RESULT: " + result.toString()  + " STATUS: " + result.status + "MESSAGE: " + result.message + "SERVER FILE NAME: " + fileNameServer;
+					Alert.show("An error occured during file uploading " + message, "Error",Alert.OK);
+				}
+				CursorManager.removeBusyCursor();
+			}
+			
+			public function uploadComplete(event:Event):void 
+			{
+				Alert.show("Upload complete ","OK",Alert.OK);
+			}
+			
+			private var elementID:String;
+			public function setElementID(value:String):void
+			{
+				elementID=value;
+			}
+			public function getElementID():String
+			{
+				return elementID;
+			}
+			
+			protected function upload():void
+			{				
+				var request:URLRequest = new URLRequest();
+				request.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"uploadPDF.php";
+				var urlvariables:URLVariables = new URLVariables();	
+				//Alert.show(parentDocument.parentDocument.elements.selectedItem.id.toString(),"test",Alert.OK);
+				//urlvariables.elementID = parentDocument.parentDocument.elements.selectedItem.id.toString();
+				urlvariables.elementID = getElementID();
+				//		request.data = urlvariables;
+				request.method = URLRequestMethod.POST;
+				request.data = urlvariables;
+				request.method = URLRequestMethod.POST;
+				CursorManager.setBusyCursor();
+				file.upload(request);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[DataEvent(name="PDFUploaded")]
+	</fx:Metadata>
+	<s:HGroup>
+		<s:TextInput id="pdfSrc" editable="false"/>
+		<s:Button label="Browse" click="selectFile()"/>
+		<s:Button label="Upload" id="uploadPDF" click="upload()" enabled="false"/>
+		
+	</s:HGroup>
+</s:Group>

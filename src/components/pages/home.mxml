@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+	HOME pozniej do wyrzucenia
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:gl="components.pages.home_subpage.*"
+		 width="100%"
+		 currentState="wysunietaTresc"
+		 initialize="init();"
+		 >
+	<s:layout>
+		<s:HorizontalLayout/>
+	</s:layout>
+	
+	<s:states>
+		
+		<s:State name="schowanaTresc" />
+		<s:State name="wysunietaTresc"/>
+		
+	</s:states>
+	
+	<!-- sztuczka z widoczna zmiana menu;
+	   po nacisnieciu na menu uruchamiamy zmiane stanu (znikniecie starej storny), a nastepnie dopiero przechodzimy
+	   do wczytanai zawartosci nowej strony i animacji nowej zawartosci-->
+	<s:transitions>
+		<s:Transition fromState="wysunietaTresc" toState="schowanaTresc">
+			<s:Parallel>
+				<s:Fade target="{text}" alphaFrom="1" alphaTo="0"/>
+				<s:effectEnd>
+					changeSelection();
+				</s:effectEnd>
+			</s:Parallel>	
+			
+		</s:Transition>
+		<s:Transition fromState="schowanaTresc" toState="wysunietaTresc">
+			<s:Parallel>
+				<s:Fade target="{text}" alphaFrom="0" alphaTo="1"/>
+			</s:Parallel>
+		</s:Transition>
+	</s:transitions>
+	
+	<fx:Script>
+		<![CDATA[
+			import components.pages.admin_subpage.flowTextControler.Test;
+			import components.pages.admin_subpage.gallery.TestGalerii;
+			import components.pages.admin_subpage.gallery.galleryEditor;
+			import components.pages.admin_subpage.gallery.galleryItem;
+			import components.pages.home_subpage.TextFlow;
+			import components.pages.home_subpage.druga;
+			import components.pages.home_subpage.welcome;
+			
+			import mx.core.IVisualElement;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public var trescStrony:IVisualElement = new welcome();
+			private var napis:String;
+			
+		
+			/* funkcja odczytujaca na jaki przycisk nacisnelismy w menu a nastepnie animuje znikniecie starej strony */
+			private function fadeAway(event:IndexChangeEvent):void
+			{
+				napis = String(ButtonBar(event.target).selectedItem);
+				event.stopImmediatePropagation();
+				currentState = "schowanaTresc";
+			}
+			
+			/* funkcja wczyta zawartosc nowej strony i ponownie zanimuje wejscie tej nowej strony */
+			private function changeSelection():void
+			{
+				text.removeAllElements();
+				switch (napis)
+				{
+					case "pierwszy":
+						trescStrony = new welcome();
+					break;
+					case "drugi":
+						trescStrony = new druga();
+					break;
+					case "TextFlow":
+						trescStrony = new Test();
+						break;
+					case "XML":
+						break;
+					case "Galeria":
+						trescStrony = new TestGalerii();
+						break;
+					case "Edytor Galerii":
+						trescStrony = new galleryEditor();
+						break;
+				}
+				text.addElement(trescStrony)
+				currentState = "wysunietaTresc";
+			}
+			
+			
+			protected function init():void
+			{
+				text.addElement(trescStrony);
+			}
+		
+
+			
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:Resize id="res"/>
+		<mx:Resize duration="500" id="r1"/>
+	</fx:Declarations>
+	
+	
+	<s:BorderContainer horizontalCenter="0" borderWeight="3" cornerRadius="6" backgroundAlpha="0.2" contentBackgroundAlpha="0.2" width="15%">
+		<!--<mx:ToggleButtonBar verticalGap="3" itemClick="clickHandler(event);" dataProvider="{home_dane}"/>
+		-->
+		<s:ButtonBar changing="fadeAway(event);" textAlign="center" fontWeight="normal" horizontalCenter="0" width="90%">
+			<s:dataProvider>
+				<s:ArrayCollection source="['pierwszy','drugi','TextFlow','XML','Galeria','Edytor Galerii']"/>
+			</s:dataProvider>
+			<s:layout>
+				<s:VerticalLayout gap="-1" paddingTop="5" paddingBottom="5" horizontalAlign="justify"/>
+			</s:layout>
+		</s:ButtonBar>
+	</s:BorderContainer>	
+	
+	<s:BorderContainer horizontalCenter="0" borderWeight="3" cornerRadius="6" backgroundAlpha="0.2" contentBackgroundAlpha="0.2" width="100%" height="100%">
+		<!--<s:TextArea width="100%" id="text" height="100%"/>-->
+		<s:Group id="text" left="10" right="10" bottom="10" height="100%" width="100%" top="10" resizeEffect="r1"/>
+	</s:BorderContainer>
+	
+</s:Group>

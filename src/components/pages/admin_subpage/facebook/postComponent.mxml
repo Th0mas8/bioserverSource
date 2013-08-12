@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- Komponent realizuje strukturę pojednycznego posta -->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="100%"
+		 creationComplete="appInit()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Metadata>
+		[Event(name="idChanged", type="myEvents.IDLinkEvent")]
+	</fx:Metadata>
+
+	<fx:Style>
+		@namespace mx "library://ns.adobe.com/flex/halo";
+		@namespace s "library://ns.adobe.com/flex/spark";
+		
+		#tt {
+			border-alpha: 0;
+			padding-left: 20;
+			padding-right: 20;
+			padding-bottom: 20;
+			padding-top: 20;
+		}
+	</fx:Style>
+		
+	<fx:Script>
+		<![CDATA[
+			import components.pages.home_subpage.TextFlow;
+			
+			import flashx.textLayout.elements.FlowElement;
+			import flashx.textLayout.elements.FlowGroupElement;
+			import flashx.textLayout.elements.LinkElement;
+			import flashx.textLayout.elements.ParagraphElement;
+			import flashx.textLayout.elements.SpanElement;
+			import flashx.textLayout.elements.TextFlow;
+			import flashx.textLayout.events.FlowElementMouseEvent;
+			import flashx.textLayout.formats.TextAlign;
+			import flashx.textLayout.formats.TextDecoration;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import flashx.textLayout.tlf_internal;
+			
+			import mx.controls.Text;
+			import mx.core.mx_internal;
+			
+			import myEvents.IDLinkEvent;
+			
+			[BINDABLE] public var tt:flashx.textLayout.elements.TextFlow;
+			public var linkEl:LinkElement = new LinkElement();
+			public var linkArt:LinkElement = new LinkElement();
+			public var spanEl:SpanElement = new SpanElement();
+			public var spanArt:SpanElement = new SpanElement();
+			[BINDABLE]public var namePost:SpanElement = new SpanElement();
+			public var messagePost:SpanElement = new SpanElement();
+			public var descriptionPost:SpanElement = new SpanElement();
+			private var links:Array=[];
+			public var newLine:SpanElement = new SpanElement();
+			public var newLine2:SpanElement = new SpanElement();
+			public var newLine3:SpanElement = new SpanElement();
+			public var newLine4:SpanElement = new SpanElement();
+			public var newLine5:SpanElement = new SpanElement();
+			public var newLine6:SpanElement = new SpanElement();
+			public var newLine7:SpanElement = new SpanElement();
+			public var newLine8:SpanElement = new SpanElement();
+			public var newLine9:SpanElement = new SpanElement();
+			public var newLine10:SpanElement = new SpanElement();
+			
+			private function appInit():void{
+				//post.mx_internal::textContainerManager.tlf_internal::convertToTextFlowWithComposer();
+				
+				var paragraph:ParagraphElement = new ParagraphElement();
+				
+				newLine.text="\r\n";
+				newLine2.text="\r\n";
+				newLine3.text="\r\n";
+				newLine4.text="\r\n";
+				newLine5.text="\r\n";
+				newLine6.text="\r\n";
+				newLine7.text="\r\n";
+				newLine8.text="\r\n";
+				newLine9.text="\r\n";
+				newLine10.text="\r\n";
+				linkEl.target="_blank";
+				linkEl.addChild(spanEl);
+				linkArt.target="_blank";
+				linkArt.addChild(spanArt);
+				namePost.fontSize=20;
+				namePost.fontWeight ="bold";
+			//	messagePost.fontSize=15;
+			//	descriptionPost.fontSize=13;
+				paragraph.textAlign= TextAlign.LEFT;
+			//	paragraph.addChild(namePost);
+			//	paragraph.addChild(newLine);
+			//	paragraph.addChild(newLine2);
+				
+				paragraph.addChild(messagePost);
+				paragraph.addChild(newLine3);
+			//	paragraph.addChild(newLine4);
+				paragraph.addChild(linkArt);
+				paragraph.addChild(newLine5);
+			//	paragraph.addChild(newLine6);
+			//	paragraph.addChild(newLine7);
+			//	paragraph.addChild(newLine8);
+				paragraph.addChild(linkEl);
+				paragraph.addChild(newLine9);
+			//	paragraph.addChild(newLine10);
+				paragraph.addChild(descriptionPost);
+				tt = new flashx.textLayout.elements.TextFlow();
+				tt.setStyle("contentBackgroundAlpha","0");
+				tt.addChild(paragraph);
+				//ustawiamy kolor linków w tekście
+				var normalTLF:TextLayoutFormat = new TextLayoutFormat();
+				//normalTLF.color = 0xCCFFFF;
+				normalTLF.color = 0x79A2E9;
+				normalTLF.textDecoration = TextDecoration.NONE;
+				
+				var hoverTLF:TextLayoutFormat = new TextLayoutFormat();
+				hoverTLF.color = 0xE69D39;
+				hoverTLF.textDecoration = TextDecoration.NONE;
+				
+				var activeTLF:TextLayoutFormat = new TextLayoutFormat();
+				activeTLF.color = 0xF06D1E;
+				activeTLF.textDecoration = TextDecoration.NONE;
+				
+				tt.linkNormalFormat = normalTLF;
+				tt.linkHoverFormat = hoverTLF;
+				tt.linkActiveFormat = activeTLF;
+				
+				post.textFlow = tt;
+				findLinkElement(tt);
+				addListeners();
+				
+			}
+			
+			private function findLinkElement(group:FlowGroupElement):void
+			{
+				var childGroups:Array = [];
+				// First check all the child elements of the current group,
+				// Also save any children that are FlowGroupElement
+				for (var i:int = 0; i < group.numChildren; i++) {
+					var element:FlowElement = group.getChildAt(i);
+					if (element is LinkElement) 
+					{
+						links.push(element as LinkElement);
+					} else if (element is FlowGroupElement)
+					{
+						childGroups.push(element);
+					}
+				}
+				// Recursively check the child FlowGroupElements now
+				for (i = 0; i < childGroups.length; i++) {
+					var childGroup:FlowGroupElement = childGroups[i];
+					findLinkElement(childGroup);
+				}
+			}
+			
+			private function addListeners():void{
+				for (var i:int=0;i<links.length;i++){
+					links[i].addEventListener(FlowElementMouseEvent.MOUSE_DOWN,linkSelect, false, 0, true);
+				}
+			}
+			
+			private function linkSelect(e:FlowElementMouseEvent):void
+			{
+				var adres:String = LinkElement(e.flowElement).href;
+				if (!isNaN(Number(adres)))
+				{
+					//czyli adres to jest zwykly link i jest on jednak skierowany na zewnątrz
+					e.stopPropagation();
+					e.stopImmediatePropagation();
+				}
+				else
+				{
+					//czyli link to liczba i zmieniamy całą zawartość na tą z nowego artykułu
+					e.stopPropagation();
+					e.stopImmediatePropagation();
+					//na zewnatrz tego komponentu obsluzymy zmiane strony, bo trzeba jeszcze zmienic MENU boczne do tego a stad
+					// tego nie obsluzymy
+					var eventObj:IDLinkEvent = new IDLinkEvent("idChanged",adres);
+					dispatchEvent(eventObj);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<!--<s:BorderContainer backgroundColor="#111111" width="100%">
+		<s:HGroup gap="30" paddingLeft="60" width="100%" >
+				<s:RichEditableText id="post" paddingTop="20" selectable="true" editable="false" width="100%"/>
+				<mx:Image visible="false" maxHeight="400" id="img"/>
+		</s:HGroup>
+	</s:BorderContainer> -->
+	<s:Panel id="panel" backgroundColor="#111111" width="100%" >
+		<s:HGroup gap="30" paddingLeft="60" width="100%" >
+			<s:RichEditableText id="post" paddingTop="20" selectable="true" editable="false" width="100%"/>
+			<mx:Image visible="false" includeInLayout="false" maxHeight="400" id="img"/>
+		</s:HGroup>
+	</s:Panel>
+</s:Group>

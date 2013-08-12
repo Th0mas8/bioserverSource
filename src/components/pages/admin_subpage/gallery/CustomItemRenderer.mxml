@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- Renderer małych obrazków do galerii, zapożyczone ze strony:  http://blog.flexexamples.com/2008/02/15/creating-a-simple-image-gallery-with-the-flex-horizontallist-control/ -->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		horizontalAlign="center"
+		verticalAlign="middle"
+		initialize="vbox1_initializeHandler(event)">
+	<mx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var path:String;
+
+			protected function vbox1_initializeHandler(event:FlexEvent):void
+			{
+				path = FlexGlobals.topLevelApplication.getImgPath();
+			}
+
+		]]>
+	</mx:Script>
+
+	<mx:Image id="thumbimg" source="{ path + data.thumbnailImage}" />
+
+	<mx:Label text="{data.label}" />
+
+</mx:VBox>

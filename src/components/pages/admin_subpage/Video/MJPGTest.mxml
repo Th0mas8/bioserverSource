@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+  xmlns:s="library://ns.adobe.com/flex/spark" 
+  xmlns:components="com.bytesol.components.*"
+  width="400"
+  height="400"
+  textAlign="center"
+  horizontalAlign="center"
+  creationComplete="onCreation(event)" xmlns:ns="components.pages.admin_subpage.Video.*"
+   contentBackgroundAlpha="1.0">
+<fx:Script><![CDATA[
+  import com.bytesol.components.IPCam;
+
+  private var cam:IPCam = new IPCam();
+  
+  private function onCreation(event:Event):void
+  {
+    cam.addEventListener("image", onImage);
+    cam.addEventListener("error", onError);
+    cam.addEventListener("connect", onConnect);
+  } 
+  
+  private function onError(e:Event):void
+  {
+    btnConnect.enabled = true;
+    btnConnect.label = "Connect";
+  }
+
+  private function onConnect(e:Event):void
+  {
+    btnConnect.enabled = true;
+    btnConnect.label = "Disconnect";
+  }
+  
+  private function onImage(e:Event):void
+  {
+    mjpg.load(cam.image);
+  }
+
+  private function onClick(e:Event):void
+  {
+    if(btnConnect.label == "Connect" )
+    {
+      btnConnect.enabled = false;      
+      cam.connect(txtUrl.text, txtUser.text, txtPass.text);
+    }
+    else 
+    {
+      btnConnect.label = "Connect";
+      cam.disconnect(); 
+      mjpg.reset();   
+    } 
+  }   
+// Sony http://192.168.5.62:8082/mjpeg?speed=30
+// Axis http://192.168.5.67:8082/mjpg/video.mjpg
+// Axis http://192.168.5.67:8082/axis-cgi/mjpg/video.cgi?fps=15
+
+]]></fx:Script> 
+
+<!--	<mx:TraceTarget id="logTarget" 
+					level="2" 
+					includeDate="true" 
+					includeTime="true" 
+					includeCategory="true" 
+					includeLevel="true">
+		<mx:filters>
+			<mx:Array>
+				<mx:String>*</mx:String>
+			</mx:Array>
+		</mx:filters>
+	</mx:TraceTarget>-->
+	
+	<ns:MJPG id="mjpg" left="5" right="5" bottom="5" top="40"
+			 backgroundColor="black" backgroundAlpha="1.0"      
+			 />
+  
+  <mx:Label id="lblfps" text="{'Avg FPS : ' + mjpg.fps.toFixed(2)}" 
+    fontSize="12" color="red" left="5" top="5" right="5" height="30" 
+    visible="{mjpg.playing}"/>
+  
+  <s:HGroup
+    horizontalAlign="left" verticalAlign="middle">
+    
+    <s:Button id="btnConnect" width="100"
+      click="onClick(event)"
+      label="Connect"
+      />
+    <s:TextInput id="txtUrl" width="100%"
+      text="http://192.168.5.66:8082/-wvhttp-01-/video.cgi?v=jpg:640x480:4:30000"
+      />
+    <s:TextInput id="txtUser" text="root" width="80"/> 
+    <s:TextInput id="txtPass" text="dany"  width="80" displayAsPassword="true"/> 
+  </s:HGroup>
+    
+</s:VGroup>

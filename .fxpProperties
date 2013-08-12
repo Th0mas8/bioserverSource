@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fxpProperties abbreviated="false" authoringTool="Flex Builder" compiles="true" parentProject="16390f28-59e9-46f0-9645-5cea72a93441" projectUUID="16390f28-59e9-46f0-9645-5cea72a93441" sdkVersion="4.1.0" uuid="17a33043-8534-4869-82c6-d2f7c6b31f5b" version="4">
+  <projects/>
+  <src/>
+  <swc>
+    <linked location="sdkPlaceHolder" path="sdkPlaceHolder" position="0" uuid="17a33043-8534-4869-82c6-d2f7c6b31f5b"/>
+    <linked location="G:/Eclipse/Bioserver/libs" path="/libs" position="1" uuid="09ae1759-918e-4f91-859e-bd2e280b8d56"/>
+  </swc>
+  <misc/>
+  <theme/>
+</fxpProperties>

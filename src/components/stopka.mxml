@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+	Plik zawiera stopkę wyświetlaną na dole strony z linkami do stron pokrewnych
+	dla bioserwera.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:coverflow="com.dougmccune.coverflow.*"
+		 xmlns:containers="com.dougmccune.containers.*"
+		 resize="group1_resizeHandler(event)"
+		 creationComplete="group1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import flash.net.navigateToURL;
+			
+			import mx.containers.Panel;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.ResizeEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.Panel;
+			
+			/**
+			 * Zachowanie gdy wjedziemy myszką na obrazek-link, zmieniamy wygląd myszki na 'linkowa łapkę'.
+			 */
+			protected function mouseOverHandler(event:MouseEvent):void
+			{
+				Mouse.cursor = MouseCursor.BUTTON;
+			}
+			
+			/**
+			 * Po zjechaniu z obrazka przywracamy stary wygląd kursora.
+			 */
+			protected function mouseOutHandler(event:MouseEvent):void
+			{
+				Mouse.cursor = MouseCursor.AUTO;
+			}
+			
+			protected function coverflow_changeHandler(event:IndexChangedEvent):void
+			{
+		//		Alert.show("asd","asdd");
+			//	var temp:Panel;
+				//event.relatedObject
+				//temp = (Panel) (event.relatedObject as Panel);
+				//temp.alpha = 0.5;
+			}
+			
+
+			protected function coverflow_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			//	event.target
+				
+			}
+
+			protected function group1_resizeHandler(event:ResizeEvent):void
+			{
+				//coverflow.height = 0.8 * this.height;
+			//	coverflow.verti = 0.1 * this.height;
+			
+			}
+
+
+			protected function panel_mouseOverHandler(event:MouseEvent):void
+			{
+				//event.
+			}
+
+			protected function toURL(str:String):void
+			{
+				navigateToURL(new URLRequest(str),'_blank');
+			}
+
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				pobierzLoga.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"pobAllLoga.php";
+				pobierzLoga.send();
+			}
+
+
+			protected function pobierzLoga_resultHandler(event:ResultEvent):void
+			{
+				//przypisujemy wynik zwrocony z serwera
+				var myXML:XML = new XML();
+				myXML = XML(event.result);
+				
+				//tworzymy zmienne pomocnicze
+				var pan:mx.containers.Panel = new mx.containers.Panel();
+				var img:Image = new Image();
+				//var str2:String = new String(); //string pomocniczy
+				var selectedIndex:int = new int();
+				
+				for each (var prop:XML in myXML.logo)
+				{
+					img = new Image();
+					pan = new mx.containers.Panel();
+					pan.width=100;
+					pan.height=100;
+					pan.setStyle("headerHeight",0);
+					pan.setStyle("backgroundAlpha",0);
+					pan.setStyle("horizontalAlign","center");
+					pan.setStyle("verticalAlign","middle");
+					pan.setStyle("dropShadowVisible",false);
+					pan.setStyle("mouseOver","panel_mouseOverHandler(event)");
+					img.source= FlexGlobals.topLevelApplication.getServerPath() + prop.@location;//odnosimy sie do atrybutu w danym elemencie <logo location="bla">
+					img.toolTip =prop.@URL;
+					img.addEventListener(MouseEvent.CLICK,function(e:MouseEvent):void{toURL(e.currentTarget.toolTip);});
+					img.setStyle("mouseOver","mouseOverHandler(event)");
+					img.setStyle("mouseOut","mouseOutHandler(event)");
+					
+					if(prop.@isselected=="1")
+					{
+						selectedIndex = prop.@position;
+					}
+					
+					pan.addChild(img);
+					coverflow.addChild(pan);
+				}
+				
+			//	coverflow.validateDisplayList();
+				coverflow.selectedIndex = selectedIndex;
+				
+			}
+
+
+			protected function faultHandler(event:FaultEvent):void
+			{
+				//CursorManager.removeBusyCursor();
+				Alert.show(event.fault.faultString,"Footer - Fault at communicating with DB");
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Style>
+		Panel {
+			borderColor: #99CDEE; 
+			borderAlpha: 1;
+			borderThickness: 1;
+			borderThicknessLeft: 1;
+			borderThicknessTop: 0; 
+			borderThicknessBottom: 1;
+			borderThicknessRight: 1;
+			roundedBottomCorners: false;
+			cornerRadius: 5;
+			headerColors: #b5e6f3, #81b3e6;
+			dropShadowEnabled: false;
+			titleStyleName: "mypanelTitle";
+			vertical-align:middle;
+			horizontal-align:center;
+		}
+		
+		.mypanelTitle {
+			letterSpacing: 1;
+			color: #333333;
+			fontSize: 12;
+			fontWeight: bold;
+		}
+	</fx:Style> 
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:HTTPService id="pobierzLoga"
+					   result="pobierzLoga_resultHandler(event)"
+					   fault="faultHandler(event)"
+					   resultFormat="e4x"/>		
+	</fx:Declarations>
+
+	
+	<containers:VCoverFlowContainer id="coverflow" width="100" height="600"
+									horizontalGap="30" verticalSpacing="100" fadeEdges="false" verticalGap="150" backgroundAlpha="0.0"
+									segments="6" change="coverflow_changeHandler(event)"  click="coverflow_clickHandler(event)"  maintainProjectionCenter="true" verticalCenter="0">
+	<!-- old panels	<mx:Panel  width="100" height="100" headerHeight="0" backgroundAlpha="0.0" horizontalAlign="center" verticalAlign="middle" dropShadowVisible="false">
+			<mx:Image source="assets/ptbi_true.png" click="navigateToURL(new URLRequest('http://ptbi.org.pl/'),'_blank');" toolTip="http://ptbi.org.pl/"
+					  mouseOver="mouseOverHandler(event)" mouseOut="mouseOutHandler(event)"/>	
+		</mx:Panel>
+	
+		<mx:Panel width="100" height="100" headerHeight="0" backgroundAlpha="0.0" horizontalAlign="center" verticalAlign="middle" dropShadowVisible="false" mouseOver="panel_mouseOverHandler(event)">
+			<mx:Image source="assets/ichb_true.png" click="navigateToURL(new URLRequest('http://www.ibch.poznan.pl/str_glowna.htm'),'_blank');" toolTip="http://www.ibch.poznan.pl/str_glowna.htm"
+					  mouseOver="mouseOverHandler(event)" mouseOut="mouseOutHandler(event)"/>
+		</mx:Panel> 
+		
+		<mx:Panel  width="100" height="100" headerHeight="0" backgroundAlpha="0.0" horizontalAlign="center" verticalAlign="middle" dropShadowVisible="false">
+			<mx:Image source="assets/logo_PP_true.png" click="navigateToURL(new URLRequest('http://www.put.poznan.pl'),'_blank');" toolTip="http://www.put.poznan.pl"
+					  mouseOver="mouseOverHandler(event)" mouseOut="mouseOutHandler(event)"/>
+		</mx:Panel>
+		
+		<mx:Panel  width="100" height="100" headerHeight="0" backgroundAlpha="0.0" verticalAlign="middle" horizontalAlign="center" dropShadowVisible="false">
+			<mx:Image source="assets/bioinformatyka_logo.png" click="navigateToURL(new URLRequest('http://www.bioinformatyka.edu.pl/'),'_blank');" toolTip="http://www.bioinformatyka.edu.pl/"
+					  mouseOver="mouseOverHandler(event)" mouseOut="mouseOutHandler(event)"/>
+		</mx:Panel>
+		
+		<mx:Panel  width="100" height="100" headerHeight="0" backgroundAlpha="0.0" horizontalAlign="center" verticalAlign="middle" dropShadowVisible="false">
+			<mx:Image source="assets/ECBiG_true.png" click="navigateToURL(new URLRequest('http://www.ecbig.pl/'),'_blank');" toolTip="http://www.ecbig.pl/"
+					  mouseOver="mouseOverHandler(event)" mouseOut="mouseOutHandler(event)"/>
+		</mx:Panel>	 -->
+		
+	</containers:VCoverFlowContainer> 
+		<!-- here we're dispatching an UPDATE_COMPLETE event every frame. This is so our PV3D material will
+		update itself properly for this component, since we want the animation to show correctly.
+		
+		<mx:Panel width="50" height="50" title="Showing Animation" 
+				  enterFrame="event.currentTarget.dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE))">
+			<mx:ProgressBar width="90%" indeterminate="true" trackHeight="30" labelPlacement="center" />
+		</mx:Panel>
+	
+	</mx:VBox>	
+		-->
+	
+	
+	
+</s:Group>

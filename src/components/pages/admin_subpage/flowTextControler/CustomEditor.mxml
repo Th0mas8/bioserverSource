@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pozyczone z ponizszej strony - uwzglednic w pracy inzynierskiej!!! -->
+<!-- http://blog.flexexamples.com/2009/07/25/exporting-a-textflow-object-in-flex-4/ -->
+<!---  Element służący do edycji tekstów - za pomocą edycji języka znacznikow - TFL - text flow -->
+<s:Panel name="CustomEditor"
+		 xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 title="SimpleTextEditor" minWidth="400"
+		 width="100%"
+		 currentState="pusto"
+		 initialize="init();">
+	<s:layout>
+		<s:VerticalLayout gap="0" />
+	</s:layout>
+	
+	<s:states>
+		<s:State name="pusto" />
+		<s:State name="wlaczonoIMG"/>
+		<s:State name="wlaczonoURL"/>		
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.text.engine.FontPosture;
+			import flash.text.engine.FontWeight;
+			
+			import flashx.textLayout.conversion.ConversionType;
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.edit.EditManager;
+			import flashx.textLayout.elements.FlowElement;
+			import flashx.textLayout.formats.TextAlign;
+			import flashx.textLayout.formats.TextDecoration;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.ColorPickerEvent;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.utils.TextFlowUtil;
+			
+			private function init():void
+			{
+				
+			}
+			
+			/**
+			 * Ustawiamy tekst w edytorze, najlepiej zaimportowany w stringu jako znaczniki, a potem przerobiony do XMLa.
+			 */
+			public function setText(text:String):void
+			{
+				//eksportowanie sprawia że tagi starają sie ladnie formatować wrzucając do środka niepotrzebne białe znaki (entery i spacje), teraz to usuniemy
+				
+				var XMLek:XML = XML(text);
+				editor.textFlow = TextFlowUtil.importFromXML(XMLek,'COLLAPSE');
+				
+			}
+			
+			/**
+			 * Wczytujemy wygląd podanego w evencie kawałka tekstu. Wszystko - rozmiar czcionki, kolor, położenie.
+			 */
+			protected function editor_selectionChangeHandler(evt:FlexEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				
+				fontDDL.selectedItem = txtLayFmt.fontFamily;
+				sizeDDL.selectedItem = txtLayFmt.fontSize;
+				boldBtn.selected = (txtLayFmt.fontWeight == FontWeight.BOLD);
+				italBtn.selected = (txtLayFmt.fontStyle == FontPosture.ITALIC);
+				underBtn.selected = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE);
+				colorCP.selectedColor = txtLayFmt.color;
+				lineBtn.selected = txtLayFmt.lineThrough;
+				
+				switch (txtLayFmt.textAlign) {
+					case TextAlign.LEFT:
+						txtAlignBB.selectedIndex = 0;
+						break;
+					case TextAlign.CENTER:
+						txtAlignBB.selectedIndex = 1;
+						break;
+					case TextAlign.RIGHT:
+						txtAlignBB.selectedIndex = 2;
+						break;
+					case TextAlign.JUSTIFY:
+						txtAlignBB.selectedIndex = 3;
+						break;
+					default:
+						txtAlignBB.selectedIndex = -1;
+						break;
+				}
+			}
+			
+			/**
+			 * Następuje zmiana czcionki na wybranym tekście.
+			 */
+			protected function fontDDL_changeHandler(evt:IndexChangeEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				txtLayFmt.fontFamily = fontDDL.selectedItem;
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			/**
+			 * Następuje zmiana rozmiaru czcionki na wybranym tekście.
+			 */
+			protected function sizeDDL_changeHandler(evt:IndexChangeEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				txtLayFmt.fontSize = sizeDDL.selectedItem;
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			/**
+			 * Następuje zmiana pogrubienia (bold) czcionki na wybranym tekście.
+			 */
+			protected function boldBtn_clickHandler(evt:MouseEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				txtLayFmt.fontWeight = (txtLayFmt.fontWeight == FontWeight.BOLD) ? FontWeight.NORMAL : FontWeight.BOLD;
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			/**
+			 * Następuje zmiana pochylenia (italic) czcionki na wybranym tekście.
+			 */
+			protected function italBtn_clickHandler(evt:MouseEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				txtLayFmt.fontStyle = (txtLayFmt.fontStyle == FontPosture.ITALIC) ? FontPosture.NORMAL : FontPosture.ITALIC;
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			/**
+			 * Następuje zmiana podkreślenia (underline) czcionki na wybranym tekście.
+			 */
+			protected function underBtn_clickHandler(evt:MouseEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				if (txtLayFmt.textDecoration == TextDecoration.UNDERLINE) {
+					txtLayFmt.textDecoration = TextDecoration.NONE;
+				}
+				else{
+					txtLayFmt.textDecoration = TextDecoration.UNDERLINE;
+				}
+				
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			/**
+			 * Następuje zmiana koloru czcionki na wybranym tekście.
+			 */
+			protected function colorCP_changeHandler(evt:ColorPickerEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				txtLayFmt.color = colorCP.selectedColor;
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			/**
+			 * Następuje zmiana wyrównania czcionki na wybranym tekście.
+			 */
+			protected function txtAlignBB_changeHandler(evt:IndexChangeEvent):void {
+				if (txtAlignBB.selectedItem) {
+					var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+						editor.selectionAnchorPosition,
+						editor.selectionActivePosition);
+					txtLayFmt.textAlign = txtAlignBB.selectedItem.value;
+					editor.setFormatOfRange(txtLayFmt,
+						editor.selectionAnchorPosition,
+						editor.selectionActivePosition);
+					editor.setFocus();
+				}
+			}
+			
+			/**
+			 * Następuje zmiana przekreślenia czcionki na wybranym tekście.
+			 */
+			protected function lineBtn_clickHandler(evt:MouseEvent):void {
+				var txtLayFmt:TextLayoutFormat = editor.getFormatOfRange(null,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				txtLayFmt.lineThrough = lineBtn.selected;
+				editor.setFormatOfRange(txtLayFmt,
+					editor.selectionAnchorPosition,
+					editor.selectionActivePosition);
+				editor.setFocus();
+			}
+			
+			
+			/**
+			 * Funkcja dodajaca link do danego tekstu.
+			 */			
+			protected function urlOKBtn_clickHandler(event:MouseEvent):void
+			{
+				var em:EditManager = editor.textFlow.interactionManager as EditManager;
+				em.selectRange(editor.selectionAnchorPosition, editor.selectionActivePosition);		
+				//usuwamy formatowanie literek przed dodaniem linka - żeby kolor linka się zgadzał
+				em.clearFormat(em.getCommonCharacterFormat(),null,null);
+				em.applyLink(urlSrc.text);
+				textFlowArea.flowComposer.updateAllControllers();
+				editor.setFocus();
+			}
+			
+			/**
+			 * Sprawiamy ze pojawia sie i znika pasek do operacji na IMG
+			 */
+			protected function imgBtnClicked():void
+			{
+				if(currentState.toString()!="wlaczonoIMG")
+					currentState="wlaczonoIMG";
+				else
+					currentState="pusto";
+				
+			}
+			
+			/**
+			 * Sprawiamy ze pojawia sie i znika pasek do operacji na URL
+			 */
+			protected function urlBtnClicked():void
+			{
+				if(currentState.toString()!="wlaczonoURL")
+					currentState="wlaczonoURL";
+				else
+					currentState="pusto";
+				
+			}
+			
+			import mx.controls.Alert;
+			import mx.managers.CursorManager;
+			
+			public var file:FileReference;
+			private var imageFilter:FileFilter = new FileFilter("Image Files (*.jpg, *.jpeg, *.gif, *.png)", "*.jpg; *.jpeg; *.gif; *.png");
+			private var fileNameServer:String;
+			
+			/**
+			 * Obsługa uploadowania pliku - rozpoczęcie - wybranie pliku na komputerze.
+			 */
+			public function selectFile():void 
+			{
+				file = new FileReference();
+				file.addEventListener(Event.SELECT, fileSelected);
+				file.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, uploadDataComplete);
+				file.addEventListener(Event.COMPLETE, uploadComplete);
+				file.addEventListener(IOErrorEvent.IO_ERROR, handleError);
+				file.browse(new Array (imageFilter));
+			}
+			
+			/**
+			 * Obsługa błędu.
+			 */
+			public function handleError(event:IOErrorEvent):void 
+			{
+				Alert.show("Error occured..."+event.toString(), "Error",Alert.OK);
+			}
+			
+			/**
+			 * Obsługa uploadowania pliku - kontynuuacja - uploadowanie zdjecia - plik nie moze byc wiekszy niz 0.5 MB.
+			 */
+			public function fileSelected(event:Event):void
+			{
+				file = FileReference(event.target);
+				//max rozmiar 0,5MB
+				if (file.size < 1024*500) {
+					imgSrc.text = file.name;
+					//	Alert.show("Following file selected: "+ file.name  + " ", "OK",Alert.OK);
+					uploadIMG.enabled=true;
+				} 
+				else 
+				{
+					imgSrc.text = "";
+					Alert.show("File is too big...", "Error",Alert.OK);
+				}
+			}
+			
+			/**
+			 * Obsługa uploadowania pliku - zakończenie - wstawiamy zdjęcie do tekstu, albo wyświetlamy informacje o błędzie.
+			 */
+			public function uploadDataComplete(event:DataEvent):void 
+			{
+				var result:XML = new XML(event.data);
+				var message:String;
+				if (result.status=="OK") {
+					fileNameServer = FlexGlobals.topLevelApplication.getImgPath()+result.filename;
+					message = "Upload Data Complete RESULT: " + result.toString()  + " STATUS: " + result.status + "MESSAGE: " + result.message + "SERVER FILE NAME: " + fileNameServer;
+					Alert.show("File has been uploaded succesfully " + message, "OK",Alert.OK);			
+					var em:EditManager = editor.textFlow.interactionManager as EditManager;
+					
+					if (editor.selectionAnchorPosition==-1 || editor.selectionActivePosition==-1) em.selectRange(0,0);
+					else em.selectRange(editor.selectionAnchorPosition, editor.selectionActivePosition);
+					
+					var cf:TextLayoutFormat = new TextLayoutFormat();
+					cf.lineHeight = "100%";
+					em.applyLeafFormat(cf);
+					
+					em.insertInlineGraphic(fileNameServer,imgWidth.text,imgHeight.text);
+					
+					textFlowArea.flowComposer.updateAllControllers();
+					editor.setFocus();
+					uploadIMG.enabled=false; 
+					imgSrc.text =""; 
+				}
+				else {
+					fileNameServer = "";
+					message = "Upload Data Complete RESULT: " + result.toString()  + " STATUS: " + result.status + "MESSAGE: " + result.message + "SERVER FILE NAME: " + fileNameServer;
+					Alert.show("An error occured during file uploading " + message, "Error",Alert.OK);
+				}
+				CursorManager.removeBusyCursor();
+			}
+			
+			/**
+			 * Zapisanie zakonczyło się powodzeniem, wyświetlamy odpowiedni komunikat.
+			 */
+			public function uploadComplete(event:Event):void 
+			{
+				Alert.show("Upload complete ","OK",Alert.OK);
+			}
+			
+			private var elementID:String;
+			
+			/**
+			 * ID potrzebne przy uploadowaniu, ustawiamy za pomoca tej funkcji
+			 */
+			public function setElementID(value:String):void
+			{
+				elementID=value;
+			}
+			
+			/**
+			 * ID potrzebne przy uploadowaniu, pobieramy za pomocą tej funkcji.
+			 */
+			public function getElementID():String
+			{
+				return elementID;
+			}
+			
+			/**
+			 * Funkja uploadujące podany plik za pomocą skryptu PHP i metody POST
+			 */
+			protected function upload():void
+			{				
+				var request:URLRequest = new URLRequest();
+				request.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"uploadFile.php";
+				var urlvariables:URLVariables = new URLVariables();	
+				//urlvariables.elementID = parentDocument.elements.selectedItem.id.toString();
+				urlvariables.elementID = getElementID();
+				request.method = URLRequestMethod.POST;
+				request.data = urlvariables;
+				request.method = URLRequestMethod.POST;
+				CursorManager.setBusyCursor();
+				file.upload(request);		
+			}
+			
+			/**
+			 * Wstawiamy w wybranym miejscu tekstu 'twardą spację' która przy zapisaniu zostanie wyłowiona i zamieniona na 
+			 * odpowiednią formę (ważne: znak '\amp' przy eksportowaniu jest zamieniany na '\amp'amp więc trzeba temu później ręcznie zapobiec) 
+			 */
+			protected function hardSpaceBtn_clickHandler(event:MouseEvent):void
+			{
+				var em:EditManager = editor.textFlow.interactionManager as EditManager;
+				em.selectRange(editor.selectionAnchorPosition, editor.selectionActivePosition);
+				em.insertText("&#xA0;");				
+				textFlowArea.flowComposer.updateAllControllers();
+				editor.setFocus();
+			}
+			
+			/**
+			 * Funkcja zostawiona na przyszłość do obsługi listy numerowanej
+			 */
+			protected function listBtn_clickHandler(event:MouseEvent):void
+			{
+				//var em:EditManager = editor.textFlow.interactionManager as EditManager;
+				//em.selectRange(editor.selectionAnchorPosition, editor.selectionActivePosition);
+				
+				//em.textFlow = TextFlowUtil.importFromString("<i>lista</i>");
+				//editor.textFlow= TextConverter.importToFlow("<i>ble</i>",TextConverter.TEXT_FIELD_HTML_FORMAT);
+				//em.textFlow =new TextFlow("<li>lista</li>");
+				//em.insertText("<li>lista</li>");
+				editor.textDisplay.setStyle("columnCount", 3);
+				//editor.textDisplay.setStyle("columnWidth", 100);
+				editor.textDisplay.setStyle("columnGap", 15);
+				
+				textFlowArea.columnCount = 3;
+				textFlowArea.columnGap = 15;
+				//textFlowArea.columnWidth = 100;
+				
+				textFlowArea.flowComposer.updateAllControllers();
+				editor.setFocus();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:Resize id="resize"/>
+	</fx:Declarations>
+	
+	
+	<s:TextArea id="editor"
+				focusEnabled="false"
+				editable="true"
+				width="100%" height="100%"
+				minHeight="200"
+				selectionChange="editor_selectionChangeHandler(event);"
+				>
+		<s:textFlow>
+			<s:TextFlow id="textFlowArea" paragraphSpaceBefore="5">
+			</s:TextFlow>
+		</s:textFlow>
+	</s:TextArea>
+	<mx:ControlBar width="100%" cornerRadius="0">
+		
+		<s:VGroup width="100%">
+			<mx:ToolBar width="100%" horizontalGap="5">
+				<s:DropDownList id="fontDDL"
+								width="150"
+								change="fontDDL_changeHandler(event);">
+					<s:dataProvider>
+						<s:ArrayList source="[Arial,Verdana,Times New Roman,Trebuchet MS]" />
+					</s:dataProvider>
+				</s:DropDownList>
+				<s:DropDownList id="sizeDDL"
+								width="60"
+								change="sizeDDL_changeHandler(event);">
+					<s:dataProvider>
+						<s:ArrayList source="[8,10,12,14,16,24,36,72]" />
+					</s:dataProvider>
+				</s:DropDownList>
+				<s:ToggleButton id="imgBtn"
+								label="IMG"
+								fontWeight="bold"
+								width="50"
+								click="imgBtnClicked()" />
+				<s:ToggleButton id="urlBtn"
+								label="URL"
+								fontWeight="bold"
+								width="50"
+								click="urlBtnClicked()" />
+				<s:ToggleButton id="boldBtn"
+								label="B"
+								fontWeight="bold"
+								width="30"
+								click="boldBtn_clickHandler(event);" />
+				<s:ToggleButton id="italBtn"
+								label="I"
+								fontStyle="italic"
+								width="30"
+								click="italBtn_clickHandler(event);" />
+				<s:ToggleButton id="underBtn"
+								label="U" 
+								textDecoration="underline"
+								width="30"
+								click="underBtn_clickHandler(event);" />
+				<s:ToggleButton id="lineBtn"
+								label="S"
+								lineThrough="true"
+								width="30"
+								click="lineBtn_clickHandler(event);" />
+				<s:ToggleButton id="hardSpaceBtn"
+								label="Space"
+								width="60"
+								click="hardSpaceBtn_clickHandler(event)" />
+				<!--	<s:ToggleButton id="listBtn"
+				label="*List"
+				width="60"
+				click="listBtn_clickHandler(event)" />-->
+				<mx:ColorPicker id="colorCP"
+								change="colorCP_changeHandler(event);" />
+				<s:ButtonBar id="txtAlignBB"
+							 arrowKeysWrapFocus="true"
+							 labelField="label"
+							 width="120"
+							 change="txtAlignBB_changeHandler(event);">
+					<s:dataProvider>
+						<s:ArrayList>
+							<fx:Object label="L" value="{TextAlign.LEFT}" />
+							<fx:Object label="C" value="{TextAlign.CENTER}" />
+							<fx:Object label="R" value="{TextAlign.RIGHT}" />
+							<fx:Object label="J" value="{TextAlign.JUSTIFY}" />
+						</s:ArrayList>
+					</s:dataProvider> 
+				</s:ButtonBar>
+			</mx:ToolBar>
+			<!--ToolBar odpowiedzialny za tworzenie IMG -->
+			<mx:ToolBar width="100%" verticalCenter="0" visible.pusto="false" visible.wlaczonoURL="false" visible.wlaczonoIMG="true" includeInLayout.pusto="false" includeInLayout.wlaczonoURL="false" includeInLayout.wlaczonoIMG="true" >
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="Img src:" verticalAlign="bottom"/>
+					<s:TextInput id="imgSrc"/>
+				</s:HGroup>
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="Width:" />
+					<s:TextInput id="imgWidth" text="auto"/>
+				</s:HGroup>
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="Height:"/>
+					<s:TextInput id="imgHeight" text="auto"/>
+				</s:HGroup>
+				<s:Button label="Browse" id="browseImage" click="selectFile()"/>
+				<s:Button label="Upload" id="uploadIMG" click="upload()" enabled="false"/>
+			</mx:ToolBar>
+			<!--ToolBar odpowiedzialny za tworzenie linkow -->
+			<mx:ToolBar width="100%" verticalCenter="0" visible.pusto="false" visible.wlaczonoURL="true" visible.wlaczonoIMG="false" includeInLayout.pusto="false" includeInLayout.wlaczonoURL="true" includeInLayout.wlaczonoIMG="false" >
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="URL:" verticalAlign="bottom"/>
+					<s:TextInput id="urlSrc" text="http://www.google.pl"/>
+				</s:HGroup>
+				<s:Button label="Create Link" id="urlOKBtn" click="urlOKBtn_clickHandler(event)"/>
+			</mx:ToolBar>
+		</s:VGroup>
+	</mx:ControlBar>
+	
+</s:Panel>

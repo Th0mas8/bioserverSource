@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+Komponent wczytujący i wyświetlający pracowników.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" 
+		 initialize="doSend()"
+		 resize="group1_resizeHandler(event)">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+	<fx:Declarations>
+		<!---
+		Servlet pobierający dane xml o pracownikach z bazy danych
+		-->
+		<mx:HTTPService id="xmlFromDatabase" 
+						showBusyCursor="true" 
+						result="resultHandler(event)"
+						fault="pobieranie_faultHandler(event)"
+						method="POST" />
+		
+
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import components.pages.people.personRender;
+			
+			import flash.display.Sprite;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			private var datalist:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var rowcount:int;
+			
+			/**
+			 * Komunikat wyświetlany w przypadku błędnego połączenia ze skryptem PHP.
+			 */
+			protected function pobieranie_faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString,"Workers - Fault at communicating with DB");
+			}
+			
+			/**
+			 * Wczytujemy dane o pracownikach odczytane z bazy danych.
+			 */
+			private function resultHandler(event:ResultEvent):void{                
+				datalist = event.result.data.row;
+				rowcount = event.result.data.num;
+				upd();
+			}
+			
+			/**
+			 * Funkcja inicjalizująca, pobierająca dane pracowników z serwera.
+			 */
+			public function doSend():void {
+				xmlFromDatabase.url = FlexGlobals.topLevelApplication.getPHPScriptsPath() + "/selectAll.php";
+				xmlFromDatabase.send();
+			}
+			
+			/**
+			 * Updatujemy ilość wyświetlanych pracowników.
+			 */
+			public function upd(): void
+			{
+				var rc: int = Math.ceil(datalist.length);
+				if (peopleList.rowCount!=rc) peopleList.rowCount = rc;
+			}
+
+			private var licznik:int=0;
+			protected function peopleList_updateCompleteHandler(event:FlexEvent):void
+			{
+				licznik++;
+ 
+			}
+			
+			protected function group1_resizeHandler(event:ResizeEvent):void
+			{
+				this.validateNow();
+				this.validateDisplayList();
+			}
+
+		]]>
+	</fx:Script>
+		
+
+	<s:Line xFrom="0" xTo="100" yFrom="0" yTo="0" width="100%" left="150" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="#07240a" weight="3"/>
+		</s:stroke>
+	</s:Line>
+	
+	
+	<!---
+	Element w którym będą przechowywane i wyświetlane dane pracowników,aby wyświetlić pojedyńczego pracownika na liście 
+	używa się elementu: $see personRender
+	
+	-->
+	<!--<s:RichEditableText id="richTxt" 
+						editable="false" 
+						focusEnabled="false">
+			<s:TextFlow>
+				<s:p>
+					Search for product info on <s:a href="www.google.com">Google</s:a>
+				</s:p>
+			</s:TextFlow>
+	</s:RichEditableText>-->
+
+	<mx:TileList  
+		id = "peopleList"
+		variableRowHeight="true"
+		borderColor="#07240a"
+		width="100%"
+		
+		dataProvider="{datalist}"
+		itemRenderer= "components.pages.people.personRender"
+		columnCount="1"
+		contentBackgroundColor="#080808" 
+		chromeColor="#080808" 
+		selectionColor="#080808" 
+		rollOverColor="#080808" 
+		focusColor="#080808" 
+		symbolColor="#080808"
+		borderVisible="false"
+		
+		horizontalScrollPolicy="off"
+		verticalScrollPolicy="off"
+		rowHeight="250"
+		updateComplete="peopleList_updateCompleteHandler(event)"
+		>
+	</mx:TileList>
+</s:Group>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- Element wysyłający email od użytkowników strony, kod ze strony: http://tutorial8.flexcf.com/ i http://www.quilix.com/node/41-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 initialize="group1_initializeHandler(event)"
+		 width="60%"
+		 textAlign="center">
+	
+	<fx:Declarations>
+	
+		<!--- Servlet kontaktujący się z php, i za jego pomocą wysyłające maila. W php musi być skonfigurowane połączenie z klientem pocztowym. -->
+		<mx:HTTPService id="contactService" result="thanks(event)" contentType="application/x-www-form-urlencoded" method="POST" resultFormat="text">
+			<mx:request xmlns="">		
+				<name>{username.text}</name>
+				<email>{email.text}</email>
+				<msg>{msg.text}</msg>
+			</mx:request>
+		</mx:HTTPService>
+		
+		<!-- walidatory sprawdzające czy wpisaliśmy odpowiedni (lub jakikolwiek) tekst do danego pola -->
+		<mx:Validator id="nameValidator" source="{username}" property="text" required="true" requiredFieldError="Name field is mandatory"/>
+		<mx:EmailValidator id="mailValidator" source="{email}" property="text" required="true" requiredFieldError="Email is mandatory" />
+		<mx:Validator id="msgValidator" source="{msg}" property="text" required="true" requiredFieldError="Please write a message" />
+		
+		
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			/**
+			 * Inicjalizacja elementu - wpisujemy odpowiedni adres skryptu php do łączenia się z serwerem.
+			 */
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				contactService.url=FlexGlobals.topLevelApplication.getPHPScriptsPath()+"contact.php";
+			}
+			
+			/**
+			 * Obsługa buttona wysyłającego maila.
+			 */
+			private function sendInfo():void
+			{
+				if(username.text=="" || email.text=="" || msg.text=="")
+				{
+					mx.controls.Alert.show("Please verify your form!")
+				} else {
+					contactService.send()
+				}
+			}
+			
+			/**
+			 * Zakończenie wysłania - wyświetlona zostaje odpowiednia informacja dla użytkownika.
+			 */
+			private function thanks(evt:Event):void
+			{
+				
+				if(String(contactService.lastResult)=="ok")
+				{
+					mx.controls.Alert.show("OK, Email - sent.","Email");
+					username.text="";
+					email.text=="";
+					msg.text=="";
+				}
+				else mx.controls.Alert.show("Errors sending email!")
+			}
+
+
+		]]>
+	</fx:Script>
+	
+	<s:VGroup textAlign="left" width="100%">
+		<mx:Label text="Send us a message using the contact form below." id="title" fontWeight="bold"/>
+		<mx:Label text="Your name:" fontWeight="bold" id="name_label"/>
+		<mx:TextInput id="username" width="70%"/>
+		<mx:Label text="Your email:" fontWeight="bold" id="email_label"/>
+		<mx:TextInput id="email" width="70%"/>
+		<mx:Label text="Message:" fontWeight="bold" id="message_label"/>
+		<mx:TextArea id="msg" height="120" width="100%" />
+		<mx:Button label="Send Email" id="send_btn" click="sendInfo()"/>
+	</s:VGroup>
+	
+</s:Group>

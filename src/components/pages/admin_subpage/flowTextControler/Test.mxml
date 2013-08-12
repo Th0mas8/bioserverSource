@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- do usunięcia -->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:ctrl="components.pages.admin_subpage.flowTextControler.*"
+		 width="100%" 
+		 initialize="init();"
+		 >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:layout> 
+		<s:VerticalLayout paddingLeft="20" paddingRight="20"
+						  paddingTop="20" paddingBottom="20" />
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.conversion.ConversionType;
+			import flashx.textLayout.conversion.TextConverter;
+			
+			import mx.controls.Alert;
+			
+			import spark.utils.TextFlowUtil;
+			//VERY IMPORTANT - TRZEBA ZMIENIC stringa JAK SIE BEDZIE SERWER PRZENOSIC
+			private var serverImgAddress:String = "http://thomas.pev.pl/img/";
+			
+			public function getServerImgAddress():String
+			{
+				return serverImgAddress;
+			}
+			
+			protected function init():void
+			{
+				customEditor.setText('<TextFlow columnCount="inherit" columnGap="inherit" columnWidth="inherit" lineBreak="inherit" paddingBottom="inherit" paddingLeft="inherit" paddingRight="inherit" paddingTop="inherit" paragraphSpaceBefore="20" verticalAlign="inherit" id="textFlowArea" whiteSpaceCollapse="preserve" xmlns="http://ns.adobe.com/textLayout/2008"><p direction="ltr" justificationRule="auto" justificationStyle="auto" leadingModel="auto" paragraphEndIndent="0" paragraphSpaceAfter="0" paragraphSpaceBefore="20" paragraphStartIndent="0" textAlign="center" textAlignLast="start" textIndent="0" textJustify="interWord"><span alignmentBaseline="useDominantBaseline" backgroundAlpha="1" backgroundColor="transparent" baselineShift="0" breakOpportunity="auto" cffHinting="horizontalStem" color="#99ff00" digitCase="default" digitWidth="default" dominantBaseline="auto" fontFamily="Arial" fontLookup="device" fontSize="12" fontStyle="normal" fontWeight="normal" kerning="auto" ligatureLevel="common" lineHeight="120%" lineThrough="false" locale="en" renderingMode="cff" textAlpha="1" textDecoration="underline" textRotation="auto" trackingLeft="0" trackingRight="0" typographicCase="default">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis et nibh lorem. Nulla ut velit magna. Nunc quis libero ac orci porta tincidunt eget in lorem. Aenean vitae nisi vitae urna lacinia congue. Duis nec leo turpis. Phasellus dui orci, lacinia in dictum lacinia, ullamcorper a tortor. Suspendisse lacinia, turpis vel euismod gravida, turpis dui vulputate libero, vel consequat enim sem nec mauris. Curabitur vitae magna vel neque accumsan commodo vitae quis ipsum. Nullam ac condimentum elit. Integer eget magna ac mi fermentum luctus. Ut pharetra auctor pulvinar. Duis lobortis, nulla at vestibulum tincidunt, ante neque scelerisque risus, ac dignissim nunc nisl rhoncus risus. Cras pretium egestas purus, a commodo nunc vehicula at. Fusce vestibulum enim in mi hendrerit a viverra justo tempor. Maecenas eget ipsum ac mauris dictum congue eu id justo.</span></p><p direction="ltr" justificationRule="auto" justificationStyle="auto" leadingModel="auto" paragraphEndIndent="0" paragraphSpaceAfter="0" paragraphSpaceBefore="20" paragraphStartIndent="0" textAlign="left" textAlignLast="start" textIndent="0" textJustify="interWord"><span alignmentBaseline="useDominantBaseline" backgroundAlpha="1" backgroundColor="transparent" baselineShift="0" breakOpportunity="auto" cffHinting="horizontalStem" color="#cccccc" digitCase="default" digitWidth="default" dominantBaseline="auto" fontFamily="Arial" fontLookup="device" fontSize="12" fontStyle="normal" fontWeight="normal" kerning="auto" ligatureLevel="common" lineHeight="120%" lineThrough="false" locale="en" renderingMode="cff" textAlpha="1" textDecoration="none" textRotation="auto" trackingLeft="0" trackingRight="0" typographicCase="default">Aliquam tincidunt tempor nisi id porta. Aenean risus dolor, tincidunt a ultrices in, laoreet eu ante. Mauris vel lacus neque, ut scelerisque eros. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec vel lacus sit amet erat vehicula malesuada id in augue. Sed purus massa, placerat non imperdiet nec, venenatis a nulla. Donec vel ligula leo, in rhoncus arcu. Duis semper bibendum facilisis. Duis nibh lorem, egestas rutrum tincidunt non, vulputate accumsan nulla. Nunc ligula nisl, ultrices ut tempor quis, rutrum et enim. Nullam accumsan scelerisque ante id pretium. Mauris nibh metus, blandit in varius congue, pharetra sit amet sem. Phasellus tincidunt lacus quis est semper ut rhoncus sem pretium. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pulvinar, enim eu consectetur venenatis, dui tortor commodo ante, sit amet sagittis libero odio cursus neque. Aliquam a dui non eros placerat euismod. In at mattis felis. Suspendisse potenti. Morbi posuere condimentum lacus. Suspendisse tellus magna, viverra ac mattis vel, adipiscing eget lectus.</span></p><p><span>Etiam ut eros lectus. Praesent nec massa nibh. Cras venenatis, ligula in condimentum euismod, nisl lorem hendrerit lacus, a imperdiet odio est et odio. Suspendisse eu orci ut augue commodo gravida sed eu risus. Vestibulum venenatis erat ac metus ullamcorper blandit. Integer et sem enim. Vivamus a arcu metus. Nunc sollicitudin commodo placerat. Maecenas vehicula, massa et auctor tempor, felis leo commodo lorem, eget pulvinar felis turpis nec erat. Mauris imperdiet gravida felis a eleifend.</span></p><p><span>Suspendisse mattis tempor fringilla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque sed molestie arcu. Praesent ut tellus sed orci blandit tristique non eget est. Sed interdum feugiat nisi, sit amet aliquet enim sodales non. Maecenas in velit sit amet tellus tincidunt dapibus. Vivamus est eros, iaculis et venenatis a, malesuada vel lacus. Aliquam vel orci tortor. Etiam ornare ante eget massa dignissim a auctor nunc pellentesque. Pellentesque sodales porta nisi, pretium accumsan eros tincidunt vitae. Cras facilisis accumsan purus ultricies lacinia. Praesent consequat elit imperdiet tellus vehicula ut ornare mauris mattis. Suspendisse non tortor nisl. Etiam ac pretium est.</span></p><p><span>Maecenas tristique, velit aliquam faucibus ornare, justo erat porta elit, sed venenatis neque mi ac elit. Nullam enim metus, gravida ac euismod sit amet, commodo vitae elit. Quisque eget molestie ante. Nulla fermentum pretium augue non tristique. Praesent in orci eu diam ultrices sodales ac quis leo. Aliquam lobortis elit quis mi rutrum feugiat. Aenean sed elit turpis. Duis enim ligula, posuere sit amet semper a, pretium vel leo. Etiam mollis dolor nec elit suscipit imperdiet. Sed a est eros.</span></p></TextFlow>');
+				customEditor.textFlowArea.flowComposer.updateAllControllers();
+			}
+			
+			public function uploadDataComplete2(event:Event):void 
+			{
+				var result:XML = new XML(event.target.data);
+				//debug.text += 'Upload Data Complete ';
+				//debug.text += 'RESULT: ' + result.toString()  + ' ';
+				//debug.text += 'STATUS: ' + result.status + ' ';
+				//debug.text += 'MESSAGE: '+ result.message;
+				Alert.show("Upload data complete RESULT: " + result.toString() , "OK",Alert.OK);
+			}
+
+			protected function save_clickHandler(event:MouseEvent):void
+			{
+				var pattern:RegExp = /<IMG SRC="(.*?)"\/>/gi;
+				var pathArray:Array = TextConverter.export(customEditor.editor.textFlow,
+					TextConverter.TEXT_FIELD_HTML_FORMAT,
+					ConversionType.STRING_TYPE).toString().match(pattern);
+				var i:int;
+				
+				var request:URLRequest = new URLRequest();
+				request.url = getServerImgAddress()+"checkImages.php";
+				var urlvariables:URLVariables = new URLVariables();
+				var query:String="(";
+				for (i=0;i<pathArray.length;i++)
+				{
+					query+="\""+pathArray[i].slice(10+getServerImgAddress().length,-3)+"\","
+				}
+				//debug.text+=query;
+				query+="\"_\")";
+				urlvariables.query = query;
+				request.data = urlvariables;
+				//debug.text=request.data.toString();
+				request.method = URLRequestMethod.POST;
+				var loader : URLLoader = new URLLoader();
+				loader.addEventListener(Event.COMPLETE, uploadDataComplete2);
+				loader.load(request);
+			}
+		]]>
+	</fx:Script>
+	<ctrl:CustomEditor id="customEditor" />
+	
+	<s:HGroup>
+		<!--
+		<s:Button id="htmlBtn"
+				  label="Export as HTML"
+				  click="debug.text = TextConverter.export(customEditor.editor.textFlow,
+				  TextConverter.TEXT_FIELD_HTML_FORMAT,
+				  ConversionType.STRING_TYPE).toString();" />
+		<s:Button id="plainTxtBtn"
+				  label="Export as plain text"
+				  click="debug.text = TextConverter.export(customEditor.editor.textFlow,
+				  TextConverter.PLAIN_TEXT_FORMAT,
+				  ConversionType.STRING_TYPE).toString();" />
+		<s:Button id="tlfBtn"
+				  label="Export as TLF"
+				  click="debug.text = TextConverter.export(customEditor.editor.textFlow,
+				  TextConverter.TEXT_LAYOUT_FORMAT,
+				  ConversionType.STRING_TYPE).toString();" />
+		-->
+		<s:Button id="save"
+				  label="Save"
+				  click="save_clickHandler(event)" />
+	</s:HGroup>
+	<!--
+	<s:TextArea id="input" width="100%" height="100%" />
+	<s:TextArea id="debug" width="100%" height="100%" />
+	-->
+</s:Group>

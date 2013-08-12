@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%"
+		 textAlign="center"
+		 initialize="group1_initializeHandler(event)"
+		 creationComplete="onCreation(event)" xmlns:ns="components.pages.admin_subpage.Video.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import com.bytesol.components.IPCam;
+			
+			private var cam:IPCam = new IPCam();
+			//http://192.168.0.100/cgi-bin/nph-zms?mode=jpeg&monitor=1&scale=100&maxfps=10&buffer=1000&user=username&password=password
+			private function onCreation(event:Event):void
+			{
+				cam.addEventListener("image", onImage);
+				cam.addEventListener("error", onError);
+				cam.addEventListener("connect", onConnect);
+				txtUrl.text = "http://192.168.0.102:80/cgi-bin/nph-zms?mode=jpeg&monitor=2&scale=100&maxfps=20&buffer=1000&user=username&password=password"
+			} 
+			
+			private function onError(e:Event):void
+			{
+				btnConnect.enabled = true;
+				btnConnect.label = "Connect";
+			}
+			
+			private function onConnect(e:Event):void
+			{
+				btnConnect.enabled = true;
+				btnConnect.label = "Disconnect";
+			}
+			
+			private function onImage(e:Event):void
+			{
+				mjpg.load(cam.image);
+			}
+			
+			private function onClick(e:Event):void
+			{
+				if(btnConnect.label == "Connect" )
+				{
+					btnConnect.enabled = false;      
+					cam.connect(txtUrl.text, txtUser.text, txtPass.text);
+				}
+				else 
+				{
+					btnConnect.label = "Connect";
+					cam.disconnect(); 
+					mjpg.reset();   
+				} 
+			}   
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Group width="100%">
+		<ns:MJPG id="mjpg" left="5" right="5" bottom="5" top="40"
+				 backgroundColor="black" backgroundAlpha="1.0"      
+				 />
+		
+		<mx:Label id="lblfps" text="{'Avg FPS : ' + mjpg.fps.toFixed(2)}" 
+				  fontSize="12" color="red" left="5" top="5" right="5" height="30" 
+				  visible="{mjpg.playing}"/>
+	</s:Group>
+	
+	<s:HGroup
+		horizontalAlign="left" verticalAlign="middle" width="100%">
+		
+		<s:Button id="btnConnect" width="100"
+				  click="onClick(event)"
+				  label="Connect"
+				  />
+		<s:TextInput id="txtUrl" width="100%"
+					 text=""
+					  color="#000000"/>
+		<s:TextInput id="txtUser" text="admin" width="80" color="#050505"/> 
+		<s:TextInput id="txtPass" text="admin"  width="80" displayAsPassword="true" color="#000000"/> 
+	</s:HGroup>
+</s:Group>

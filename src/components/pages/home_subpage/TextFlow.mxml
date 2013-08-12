@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+Strona testowa - DO WYRZUCENIA
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 initialize="init();">
+
+	<fx:Declarations>
+		<s:HTTPService id="pobieranieKolumn"
+					   url="columns.xml"/>
+		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import components.stopka;
+			
+			import flashx.textLayout.conversion.TextConverter;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			
+			import spark.utils.TextFlowUtil;
+			
+			protected var markup:String = "<p fontFamily='Arial'>This is TLF markup with paragraphs.</p><p color='0x663399'>The root TextFlow tag is included.</p> &lt; trzeba uzyc & lt; (bez spacji) ?";
+			[Bindable]
+			private var dane:Array = new Array();
+			[Bindable]
+			private var cols:ArrayCollection = new ArrayCollection();
+			
+			private function init():void
+			{
+	//			rt1.textFlow = TextFlowUtil.importFromString(markup);
+				pobieranieKolumn.send();
+//				dane = pobieranieKolumn.lastResult.tabela.ob;
+				dGrid.columns=generateCols(pobieranieKolumn.lastResult.tabela.ob);
+				//var obj:Object = pobieranieKolumn.lastResult.tabela.ob;
+				
+			}
+			
+			private function generateCols(input:XMLList):Array
+			{
+				var e1:XML = input[0];
+				var columns:Array = [];
+			    for each(var child:XML in e1.children())
+				{
+					var col:DataGridColumn = new DataGridColumn();
+					col.dataField = child.name();
+					var fieldName:String = child.name();
+					col.headerText = fieldName.charAt(0).toUpperCase() + fieldName.substr(1);
+					col.editable = true;
+					columns.push(col);
+				}
+				return columns;
+			}
+			
+		]]>
+
+	</fx:Script>
+	
+		 
+	<s:TextArea id="rt1" width="300" height="50"/>
+	<s:TextArea id="probaTabelki" width="400" height="400" />
+	<mx:DataGrid id="dGrid"
+				 dataProvider="{dane}"
+				 >
+	</mx:DataGrid>
+		
+</s:Group>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		 initialize="group1_initializeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import flash.display.Sprite;
+			import flash.errors.*;
+			import flash.events.*;
+			import flash.net.URLRequest;
+			import flash.net.URLStream;
+			import flash.utils.ByteArray;
+			
+			import mx.events.FlexEvent;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				startByte = 0xFF;
+				startBytes.writeByte(0xFF);
+				startBytes.writeByte(0xD8);
+				
+				startNum = startBytes[0];
+				//trace(startNum);
+				nextNum = startBytes[1];
+				//	trace(nextNum);
+				
+				// Open the stream
+				stream = new URLStream();
+				var request:URLRequest = new URLRequest("http://192.168.0.100/cgi-bin/nph-zms?mode=jpeg&monitor=1&scale=100&maxfps=10&buffer=1000&user=username&password=password");
+				configureListeners(stream);
+				try {
+					stream.load(request);
+				} catch (error:Error) {
+					trace("Unable to load requested URL.");
+				}
+			}
+			
+			
+			
+			var stream:URLStream = new URLStream();
+			var mjpegBuffer:ByteArray = new ByteArray();
+			// The actual image
+			var imageBytes:ByteArray; // = new ByteArray();
+			// The chars at the end of the image
+			var endPos:String = "\n--myboundary";
+			
+			// Started to find, finished finding
+			var done:Boolean = false;
+			var started:Boolean = false;
+			
+			// Don't know why I have to save these to a ByteArray to do the comparisons but it seems I do
+			var startBytes:ByteArray = new ByteArray();
+			var startByte:int = new int();
+			
+			var secondByte:int = 0xD8;
+			
+			var startNum:int;
+			//trace(startNum);
+			var nextNum:int;
+			
+		//	trace(startBytes.length);
+			
+			
+			function configureListeners(dispatcher:EventDispatcher):void {
+				dispatcher.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+			}
+			
+			function progressHandler(event:Event):void
+			{
+				trace("Running");
+				stream.readBytes(mjpegBuffer,mjpegBuffer.length,stream.bytesAvailable);
+				for (var i:int = 0; i < mjpegBuffer.length; i++)
+				{
+					var currentByte:int = mjpegBuffer[i];
+					var nextByte:int = mjpegBuffer[i+1];
+					var thirdByte:int = mjpegBuffer[i+2];
+					var fourthByte:int = mjpegBuffer[i+3];
+					
+					//var randNum:Number = Math.random();
+					//if (randNum > .5 && randNum < .6) { trace(currentByte); }
+					
+					if (!started)
+					{
+						if (currentByte == startNum && nextByte == nextNum)
+						{
+							trace("Started");
+							started = true;
+							imageBytes = new ByteArray();
+							imageBytes.writeByte(currentByte);
+							//imageBytes.writeByte(0xD8); // Gets written in the else
+						}
+					}
+					else
+					{
+						if (currentByte == endPos.charCodeAt(0) && nextByte == endPos.charCodeAt(1) && thirdByte == endPos.charCodeAt(2) && fourthByte == endPos.charCodeAt(3))
+						{
+							trace("done");
+							trace(imageBytes);
+							done = true;
+							started = false;
+							
+							var loader:Loader = new Loader();
+							loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onByteArrayLoaded)
+							loader.loadBytes(imageBytes);
+							//stream.close();
+						}
+						else
+						{
+							imageBytes.writeByte(currentByte);
+						}
+					}
+				}
+			}
+			
+			function onByteArrayLoaded(e:Event):void
+			{
+				var loader:Loader = Loader(e.target.loader);
+				loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onByteArrayLoaded);
+				
+				var bitmapData:BitmapData = Bitmap(e.target.content).bitmapData;
+				
+				//sprLoaded.graphics.clear();
+				
+				graphics.beginBitmapFill(bitmapData);
+				graphics.drawRect(0,0,bitmapData.width, bitmapData.height);
+				graphics.endFill();
+				//img.graphics = graphics;
+			//	img.
+				
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:Image id="img" />
+</s:Group>

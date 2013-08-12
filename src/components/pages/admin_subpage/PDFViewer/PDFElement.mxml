@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- @private -->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:fp="com.devaldi.controls.flexpaper.*"
+		  width="100%"
+		  horizontalAlign="center"
+		  creationComplete="init();"
+		  >
+	<fx:Script>
+		<![CDATA[
+			import com.devaldi.events.DocumentLoadedEvent;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.ResizeEvent;
+			
+			protected function init():void
+			{
+				this.validateNow();
+				pdf.width = 640;
+				pdf.height = 480;
+			
+			}
+			
+			public function setPDF(adres:String):void
+			{
+				if (adres != FlexGlobals.topLevelApplication.getPDFPath() && adres != "")
+				{
+					pdf.SwfFile=adres;
+				}
+			}
+			
+			public function getPDFAdres():String
+			{
+				return pdf.SwfFile;
+				
+			}
+
+			protected function watchAll_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+			/**
+			 * @private
+			 */
+			protected function pdf_onDocumentLoadedHandler(event:DocumentLoadedEvent):void
+			{
+				pdf.fitWidth();
+				pdf.validateNow();
+				pdf.validateDisplayList();
+				pdf.gotoPage(1);
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	<fp:FlexPaperViewer id="pdf" onDocumentLoaded="pdf_onDocumentLoadedHandler(event)" />
+	<!--<s:Button id="watchAll" label="Watch Full Screen" click="watchAll_clickHandler(event)" /> -->
+</s:VGroup>

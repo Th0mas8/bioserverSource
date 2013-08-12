@@ -1,0 +1,848 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:art="components.pages.*"
+		  xmlns:tog="zx.controls.*"
+		  width="100%"
+		  paddingBottom="0"
+		  creationComplete="vgroup1_initializeHandler(event)"
+		  resize="tempMenu_resizeHandler(event)" gap="0">
+	<fx:Script>
+		<![CDATA[
+			import data.SWFAddress;
+			import data.SWFAddressEvent;
+			import data.WrappedButtonBarSkin;
+			
+			import flash.display.DisplayObject;
+			
+			import flashx.textLayout.elements.FlowElement;
+			import flashx.textLayout.elements.FlowGroupElement;
+			import flashx.textLayout.elements.LinkElement;
+			import flashx.textLayout.events.FlowElementMouseEvent;
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.controls.List;
+			import mx.controls.Menu;
+			import mx.controls.listClasses.ListBaseContentHolder;
+			import mx.controls.menuClasses.MenuBarItem;
+			import mx.controls.menuClasses.MenuItemRenderer;
+			import mx.core.Application;
+			import mx.core.FlexGlobals;
+			import mx.core.FlexSprite;
+			import mx.core.IChildList;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.SpriteAsset;
+			import mx.core.UIComponent;
+			import mx.core.UITextField;
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
+			import mx.events.FlexMouseEvent;
+			import mx.events.ItemClickEvent;
+			import mx.events.MenuEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			import mx.managers.PopUpManagerChildList;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.URLUtil;
+			
+			import myEvents.IDLinkEvent;
+			
+			import spark.components.supportClasses.Skin;
+			import spark.events.IndexChangeEvent;
+			
+			private var myXML:XML;
+			private var XMLMenuSource:XML;
+			private var bocznyXMLSource:XML;
+			
+			private var linksArray:Array = [];
+			private var oldChosenMenu:MenuBarItem = null;
+			private var zm:Menu=null;
+			private var aktualneID:String = "15";
+			private var aktualnyArtykul:String = "";
+			private var aktualnaSciezka:String = "";
+			private var poczAdres:String="";
+			private var poczAdresBaseURL:String="";
+			
+			private function handleSWFAddress():void
+			{
+				var value:String = SWFAddress.getValue();
+				var valArray:Array = new Array();
+				valArray = value.match(/\/[0-9]+$/);
+				if(valArray!=null)
+				{
+					if(valArray.length!=0)
+					{
+						value = valArray[0];
+						value = value.substr(1);
+						//value = value.replace(/\//g, "");
+						wyswietlPodanyArtykulID(value);
+						//Alert.show('wyswietlilem');
+						SWFAddress.setTitle(formatAsTitle(aktualnyArtykul));
+					}
+				}
+			}
+			
+			private function setSWFAddress():void
+			{
+				//SWFAddress.setValue("/" + aktualneID + "/");
+				SWFAddress.setValue(aktualnaSciezka+aktualnyArtykul+'/'+aktualneID);
+			}
+			
+			private function formatAsURL(t:String):String
+			{
+				var formatted:String = t;
+				return formatted.replace(/ /g,"-");
+			}
+			
+			private function formatAsTitle(t:String):String
+			{
+				var formatted:String = t;
+				return formatted.replace(/-/g," ");
+			}
+			
+			
+			/**
+			 * Funkcja pomocnicza, rekurencyjna do stworzenia z XMLowej listy -> drzewo z którego stworzymy menu.
+			 */
+			protected function sprawdzicDzieci(zmienna:XML):void
+			{				
+				for each (var podzmienna:XML in zmienna.podstrona)
+				{
+					
+					var tmp:XMLList = myXML.node.(attribute('id')==podzmienna.attribute('id'))
+						//zazwyczaj powinien znalezc tylko jeden element, id sa unikalne, ale musi zwracac jako XMLList wiec odnosze sie tylko do pierwszego elementu
+						delete (zmienna.podstrona.(attribute('id')==podzmienna.attribute('id')))[0];
+					sprawdzicDzieci(tmp[0]);
+				//	throw("error");
+					zmienna.appendChild(tmp[0]);
+			
+				}
+				
+			}
+			
+			/**
+			 * Funkcja ustawiająca szerokości elementów w menu, w celu uniknięcia błędnej szerokości przy resizowaniu przeglądarki.
+			 */
+			private function setSizeOfMainMenu():void
+			{
+				//zerujemy wpierw szerokosci elementow poniewaz bledy zaokraglen recznego obliczania powodowalyby ze pasek po kazdym setSize rozszerzalby sie
+				for each(var item1:MenuBarItem in tempMenu.menuBarItems){
+					
+					item1.width = 0;
+					
+				}
+				//tempMenu.percentWidth = 99;	
+				
+				this.validateNow();
+				//tempMenu.validateNow();
+				
+				//ile mamy elementow w glownym menu
+				var ileWMenu:int = tempMenu.menuBarItems.length;
+				
+				for each(var item:MenuBarItem in tempMenu.menuBarItems){
+					
+					var zm:int = int(tempMenu.width / ileWMenu);
+					item.width = zm;
+					
+				}				
+			}
+			
+			/**
+			 * Zakończenie ściągania artykułów - wpisujemy pobrane artykuły do menu  i wybieramy stronę HOME.
+			 */
+			protected function pobierzArtykuly_resultHandler(event:ResultEvent):void
+			{
+				CursorManager.removeBusyCursor();
+				myXML = XML(event.result);
+				
+				XMLMenuSource = <articles>
+				</articles>;
+				//szukamy głównych menu - tych najwyższych, z flagą 'main'
+				
+				var ilosc:int = 0; //ile razy wystapil dany main
+				var ktory_main:int = 0;
+				
+				//glowne elementy menu nazywaja sie main0, main1, main2 itd itp, szukamy ich i ich dzieci, a potem dodajemy do glownego drzewa
+				//z ktorego utworzymy menu
+				
+				do
+				{
+					ilosc =0;
+					
+					for each (var prop:XML in myXML.node.(attribute('rodzaj') == ('main'+ktory_main)))
+					{
+						sprawdzicDzieci(prop);
+						
+						XMLMenuSource.appendChild(prop);
+						ilosc++
+					}
+					ktory_main++;
+				}
+				while (ilosc != 0)
+				
+				/*
+				for each (var prop:XML in myXML.node.(attribute('rodzaj') == 'main'))
+				{
+				sprawdzicDzieci(prop);
+				
+				newXML.appendChild(prop);
+				}
+				*/
+				
+				tempMenu.dataProvider = XMLMenuSource.node;
+				parentDocument.viewer.menuXML = XMLMenuSource.node;
+				
+				//ustawiamy podkreślenie i aktualnei wybrany element
+				tempMenu.validateNow();
+				oldChosenMenu = tempMenu.menuBarItems[0];
+				oldChosenMenu.setStyle("textDecoration","underline");
+				
+				//ustawiamy obslugiwanie Back button i odswiezania
+				
+				
+				SWFAddress.onChange = handleSWFAddress;
+				
+				var value:String = poczAdresBaseURL;
+				var valArrayPodstawa:Array = new Array();
+				valArrayPodstawa = value.match(/\?id=[0-9]+$/);
+				
+				//Alert.show(str);
+				//jesli ktos wszedl z linkiem, to w pasku adresu juz jest co otwieramy i wtedy nie otwieramy home
+				if((poczAdres==null || poczAdres=="/") && (valArrayPodstawa==null))
+				{
+					//powinno byc 15 - jeśli ktoś usunął HOME i stworzył nowy to znaczy że ID nie bedzie się zgadzać - trzeba zmienić
+					wyswietlPodanyArtykulID("15");
+				}
+				else
+				{
+				/*	var value:String = poczAdres;
+					var valArray:Array = new Array();
+					valArray = value.match(/\/[0-9]+$/);*/
+					var value:String = poczAdres;
+					var valArray:Array = new Array();
+					valArray = value.match(/\/[0-9]+$/);
+					
+					if(valArray!=null)
+					{
+						if(valArray.length!=0)
+						{
+							value = valArray[0];
+							value = value.substr(1);
+							//value = value.replace(/\//g, "");
+							wyswietlPodanyArtykulID(value);
+							//Alert.show('wyswietlilem');
+							SWFAddress.setTitle(formatAsTitle(aktualnyArtykul));
+						}
+					}
+					else
+					{
+						value = poczAdresBaseURL;
+						valArray = new Array();
+						valArray = value.match(/\?id=[0-9]+$/);
+						if(valArray!=null)
+						{
+							if(valArray.length!=0)
+							{
+								value = valArray[0];
+								value = value.substr(4);
+								//value = value.replace(/\//g, "");
+								wyswietlPodanyArtykulID(value);
+								//Alert.show('wyswietlilem');
+								SWFAddress.setTitle(formatAsTitle(aktualnyArtykul));
+							}
+						}
+					}
+				}
+			}
+			
+			/**
+			 * Obsługa błędów komunikacji z bazą danych.
+			 */
+			protected function faultHandler(event:FaultEvent):void
+			{
+				CursorManager.removeBusyCursor();
+				Alert.show(event.fault.faultString,"Menu - Fault at communicating with DB");
+			}
+			
+			private function handleSWFAddressINIT(e:SWFAddressEvent):void {
+				//Get from swfaddress the initial value from the adress bar		
+				
+				poczAdres = SWFAddress.getValue();
+				poczAdresBaseURL = SWFAddress.getBaseURL();				
+			}
+			
+			/**
+			 * Inicjalizacja komponentu - ściągamy artykuły z bazy danych.
+			 */
+			protected function vgroup1_initializeHandler(event:FlexEvent):void
+			{
+				SWFAddress.addEventListener(SWFAddressEvent.INIT, handleSWFAddressINIT);
+				
+				CursorManager.setBusyCursor();
+				pobierzArtykuly.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"pobArtykuly.php";
+				//Alert.show(pobierzArtykuly.url,"url");
+			 	pobierzArtykuly.send();
+				parentDocument.viewer.setArticleID("15");
+				
+				addEventListener("ArticleChoosed",articleFromBrowser);
+				//viewer.addEventListener(TextEvent.LINK,linkSelect);
+			}
+			
+			/**
+			 * Handler dla ręcznie obdpalanego elementu, naciśnięcia na wewnętrzny link - do innej strony.
+			 */
+			public function articleFromBrowser(event:DataEvent):void
+			{
+				wyswietlPodanyArtykulID(event.data);
+				//Alert.show("asd","ooooo");
+			}
+			
+			/**
+			 * Pusty handler na zjechanie myszki z obiektu - musi być obsłużony żeby prawidłowo otrzymać event wjechania na element.
+			 */
+			protected function tempMenu_itemRollOutHandler(event:MenuEvent):void
+			{
+			//	MenuBar(event.target).la;
+				//MenuBar(event.currentTarget).currentState
+			}
+			
+			protected function zmmenuMouseOut (event:MouseEvent):void
+			{
+				
+			}
+			
+			protected function zmitemRollOut (event:MenuEvent):void
+			{
+				
+			}
+			
+				
+			
+					/**
+					 * Returns all the popups inside an application. Only the popups whose base
+					 * class is UIComponent are returned.
+					 *
+					 * @param applicationInstance
+					 *   Application instance. If null, Application.application is used.
+					 * @param onlyVisible
+					 *   If true, considers only the visible popups.
+					 * @return All the popups in the specified application.
+					 */
+					public static function getAllPopups(applicationInstance: Object = null,
+														onlyVisible: Boolean = false): ArrayCollection
+					{
+						var result: ArrayCollection = new ArrayCollection();
+						
+						if (applicationInstance == null)
+						{
+							applicationInstance = Application.application;
+						}
+						
+						var rawChildren: IChildList = applicationInstance.systemManager.rawChildren;
+						
+						for (var i: int = 0; i < rawChildren.numChildren; i++)
+						{
+							var currRawChild: DisplayObject = rawChildren.getChildAt(i);
+							
+							if ((currRawChild is UIComponent) && UIComponent(currRawChild).isPopUp)
+							{
+								if (!onlyVisible || UIComponent(currRawChild).visible)
+								{
+									result.addItem(currRawChild);
+								}
+							}
+						}
+						
+						return result;
+					}
+					
+					/**
+					 * Checks if an application has visible popups. Only the popups whose base
+					 * class is UIComponent are considered.
+					 *
+					 * @param applicationInstance
+					 *   Application instance. If null, Application.application is used.
+					 * @return True if there are visible popups in the specified application,
+					 *         false otherwise.
+					 */
+					public static function hasVisiblePopups(applicationInstance: Object = null): Boolean
+					{
+						if (applicationInstance == null)
+						{
+							applicationInstance = Application.application;
+						}
+						
+						var rawChildren: IChildList = applicationInstance.systemManager.rawChildren;
+						
+						for (var i: int = 0; i < rawChildren.numChildren; i++)
+						{
+							var currRawChild: DisplayObject = rawChildren.getChildAt(i);
+							
+							if ((currRawChild is UIComponent) && UIComponent(currRawChild).isPopUp
+								&& UIComponent(currRawChild).visible)
+							{
+								return true;
+							}
+						}
+						
+						return false;
+					}
+					
+					/**
+					 * Closes all the popups belonging to an application. Only the popups
+					 * whose base class is UIComponent are considered.
+					 *
+					 * @param applicationInstance
+					 *   Application instance. If null, Application.application is used.
+					 * @return The list of the closed popups.
+					 */
+					public function closeAllPopups(applicationInstance: Object = null): ArrayCollection
+					{
+						var allPopups: ArrayCollection = getAllPopups(applicationInstance);
+						
+						for each (var currPopup: UIComponent in allPopups)
+						{
+							PopUpManager.removePopUp(currPopup);
+						}
+						
+						return allPopups;
+					}
+				
+
+			
+			protected function zmmenuRollOut (event:MouseEvent):void
+			{
+				
+				if(event.relatedObject is Menu || event.relatedObject is MenuBarItem || event.relatedObject is ListBaseContentHolder )
+				{
+					
+				}
+				else
+				{
+					//event.target.hide();
+					//Menu(event.target).parent;
+					//this.removeElement(zm);
+				//	event.target.parent
+				//	zm.hide();
+			//		zm = null;
+				/*	for (var obj:IFlexDisplayObject in mx.managers.PopUpManagerImpl.mixins)
+					{
+						PopUpManager.removePopUp(obj);
+					}*/
+					closeAllPopups();
+					tempMenu.selectedIndex=0;
+					//var zm:DisplayObject = tempMenu.getChildAt(0);
+					var zm:MenuBarItem = tempMenu.menuBarItems[0];
+					for (var i:int=0;i<tempMenu.menuBarItems.length;i++)
+					{
+						zm = tempMenu.menuBarItems[i];
+						zm.menuBarItemState="itemUpState";
+					}
+					//zm.menuBarItemState
+					tempMenu.validateNow();
+					tempMenu.validateDisplayList();
+					this.validateNow();
+					this.validateDisplayList();
+					//Menu(event.target).
+				}
+			}
+			
+			protected function menuShow(event:MenuEvent):void
+			{
+				//trace('smth\n');
+				event.menu.addEventListener(MouseEvent.ROLL_OUT,zmmenuRollOut);
+			}
+			
+			/**
+			 * Obsłuzenie momentu wjechania z zewnątrz na element menu. Służy do pokazania ręcznego submenu dla danego elementu (nie dzieje się to automatycznie).
+			 */
+			protected function tempMenu_itemRollOverHandler(event:MenuEvent):void
+			{	
+				if (event.menu == null)
+				{
+					if(MenuBar (event.target).id == 
+						"tempMenu")
+					{
+						tempMenu.selectedIndex = event.index;
+						var dl:int = XML(event.item).descendants().length();
+						
+						if(dl!=0)
+						{
+							var mojaZmienna:MenuBarItem = tempMenu.menuBarItems[event.index];
+							var mojaZmienna2:MenuBarItem = tempMenu.menuBarItems[0];
+							
+							zm = tempMenu.getMenuAt(event.index);
+						//	zm.id = 'mojeMenuDoWszystkiego';
+						//	zm.addEventListener(Event.ADDED_TO_STAGE,addStage);
+							var punkt:Point = tempMenu.localToGlobal(new Point (tempMenu.x,tempMenu.y));
+							var punktZerowy:Point = mojaZmienna2.localToGlobal(new Point (mojaZmienna2.x,mojaZmienna2.y));
+							zm.addEventListener(MouseEvent.ROLL_OUT,zmmenuRollOut);
+							zm.addEventListener(MenuEvent.MENU_SHOW,menuShow);
+							//zm.addEventListener(MouseEvent.MOUSE_OUT,zmmenuMouseOut);
+						//	zm.addEventListener(MenuEvent.ITEM_ROLL_OUT,zmitemRollOut);
+							zm.show(punktZerowy.x + mojaZmienna.x - mojaZmienna2.x - 10, punkt.y + tempMenu.height);
+							
+						}
+					}
+				}
+			}
+			
+			private function tmp(event:Event):void
+			{
+				
+			}
+			
+			/**
+			 * Obsługa kliknięcia na submenu i wyświetlenia danego artykułu.
+			 */
+			protected function tempMenu_itemClickHandler(event:MenuEvent):void
+			{
+				if (parentDocument.viewer.effectsPlaying) return;
+				if (event.item != null)
+				{
+					var zmienXML: XML = XML (event.item);
+					var zmienna:String = zmienXML.attribute('id').toString();
+					
+					
+					wyswietlPodanyArtykulID(zmienna);
+				}
+			}
+			
+			/**
+			 * Obsługa kliknięcia na główną belkę menu - wyświetlenie komponentu
+			 */
+			protected function tempMenu_mouseDownHandler(event:MouseEvent):void
+			{
+				if (parentDocument.viewer.effectsPlaying) return;
+				if(event.target is MenuBarItem)
+				{
+					var zmien:MenuBarItem = MenuBarItem(event.target);
+					var XMLek:XML = XML(zmien.data);
+					
+					
+					//zmien.menuBarItemState = "inne";
+					//sprawdzamy czy kliknelismy po raz pierwszy na cos
+					if(oldChosenMenu != null)
+					{
+						oldChosenMenu.setStyle("textDecoration","normal");
+					}
+					zmien.setStyle("textDecoration","underline");
+					oldChosenMenu = zmien;
+					
+					var zmiennaID:String = XMLek.attribute('id').toString();
+					wyswietlPodanyArtykulID(zmiennaID);
+					
+				}
+			}
+			
+			
+			
+			/**
+			 * Sprawdzamy czy są jakieś podstrony (wyświetlamy boczne menu) i tworzymy pasek historii, następnie przekazujemy ID artykułu elementowi viwer i wyświetlamy wszystkie pdelementy.
+			 */
+			public function wyswietlPodanyArtykulID(ID:String):void
+			{
+				if (parentDocument.viewer.effectsPlaying) return;
+				
+				
+				if (ID=="")
+					return;
+				
+				var parent:XML;
+				
+				var Lista:XMLList = XMLMenuSource.descendants().(attribute('id') == ID);
+				var zm:XML = Lista[0];
+				
+				//jesli strony nie ma to musimy wyswietlic 404 - not found;
+				if(zm == null)
+				{
+					
+				}
+				else //jesli strona jest normalnie w bazie danych to ja wyswietlamy
+				{ 
+					
+					//tworzymy pasek adresu
+					var adres:XML = zm;
+					var ileElementow:int = 0;
+					pasekAdresu.text = "";
+					
+					aktualnyArtykul = "";
+					aktualnaSciezka = "";
+					
+					do
+					{
+						//pierwszy element, w ktorym jestesmy
+						if(adres == zm)
+						{
+							aktualnyArtykul = adres.attribute('nazwa').toString();
+							//pasekAdresu.text = adres.attribute('nazwa').toString();
+							pasekAdresu.htmlText = '<u><b>' + adres.attribute('nazwa').toString() + '</b></u>';
+							ileElementow++;
+						}
+						else
+						{
+							aktualnaSciezka = adres.attribute('nazwa').toString()+'/'+aktualnaSciezka;
+							pasekAdresu.htmlText = '<a href=\'event:' + adres.attribute('id').toString() + '\'>' + adres.attribute('nazwa').toString() + '</a> >> ' + pasekAdresu.htmlText;
+							ileElementow++;
+						}
+						adres = adres.parent();
+					}
+					while (adres.parent() != null)
+					//pasekAdresu.htmlText = pasekAdresu.htmlText;	
+					
+					//sprawdzamy czy w historii wyswietlimy tylko jeden element - glowne menu, czy wiecej, jak tylko jeden to nie pokazujemy paska adresu
+					if (ileElementow == 1)
+					{
+						//pasekAdresu.includeInLayout = false;
+						pasekAdresu.visible = false;
+					}
+					else
+					{
+						pasekAdresu.includeInLayout = true;
+						pasekAdresu.visible = true;
+					}
+					
+					
+					//id sa unikalne wiec tylko jedno z listy bierzemy
+					if(zm.descendants().length()==0 )
+					{
+						parent = Lista[0].parent();
+					}
+					else
+					{
+						parent = Lista[0];
+					}					
+					//jesli jestesmy na górze menu i nie ma podstron to nie pokazujemy bocznego menu
+					if(zm.parent().name() == 'articles' && zm.descendants().length() ==0)
+					{
+						;
+					}
+					else
+					{
+						// jeszcze raz dajemy visible historię, żeby pokazała się w głównym menu - Research
+						pasekAdresu.visible = true;
+						
+					}
+					
+				}
+				aktualneID = ID;
+				setSWFAddress();
+				//ustawilismy menu, teraz wyswietlamy tresc
+				parentDocument.viewer.setArticleID(ID);
+				//setSizeOfMainMenu();
+			}
+			
+			
+			
+			/**
+			 * W przypadku zmiany wielkości strony ponownie przeliczamy szerokość i rozmiesczenie elementów na stronie.
+			 */
+			protected function tempMenu_resizeHandler(event:ResizeEvent):void
+			{
+				//setSizeOfMainMenu();
+				//	grupaTresci.width = 0.9 * this.width;
+				parentDocument.viewer.validateNow();
+				//	grupaTresci.validateDisplayList();
+				
+			}
+			
+			/**
+			 * Obsługa kliknięcia na otworzone submenu.
+			 */
+			protected function groupItemClick(event:MouseEvent):void
+			{
+				if(event.currentTarget is Menu)
+				{
+					if(event.target is UITextField)
+					{
+						var text:UITextField = UITextField (event.target);
+						
+						var men:MenuItemRenderer = MenuItemRenderer (text.parent);
+						var xmlek:XML = XML (men.data);
+						if (xmlek.descendants().length() != 0)
+						{
+							for each (var prop:Menu in tempMenu.menus)
+							{
+								prop.visible = false;
+							}
+							
+							wyswietlPodanyArtykulID(men.data.attribute('id'));
+							tempMenu.selectedIndex = -1;
+						}
+					}else if(event.target is SpriteAsset)
+					{
+						//jeśli nie klikniemy na label menu tylko na 'tło' to wtedy obsłużymy kliknięcie tutaj
+						var obram:SpriteAsset = SpriteAsset(event.target);
+						
+						var sprite:FlexSprite = FlexSprite (obram.parent);
+						
+						var listabase:ListBaseContentHolder = ListBaseContentHolder(sprite.parent);
+						
+						var xmlek2:XML = XML (listabase.iterator.current);
+						if (xmlek2.descendants().length() != 0)
+						{
+							for each (var prop2:Menu in tempMenu.menus)
+							{
+								prop2.visible = false;
+							}
+							
+							wyswietlPodanyArtykulID(listabase.iterator.current.attribute('id'));
+							tempMenu.selectedIndex = -1;
+						}
+					}
+					
+					
+					
+					//WAŻne na twardo w kodzie Research znajduje się na drugiej pozycji
+					if(oldChosenMenu != null)
+					{
+						oldChosenMenu.setStyle("textDecoration","normal");
+					}
+					oldChosenMenu = tempMenu.menuBarItems[1];
+					oldChosenMenu.setStyle("textDecoration","underline");
+					
+					
+				}
+			}
+			
+			/**
+			 * W przypadku pojawienia się submenu dodajemy obsługę kliknięcia na nie @see groupItemClick
+			 */
+			protected function tempMenu_menuShowHandler(event:MenuEvent):void
+			{
+				event.menu.addEventListener(MouseEvent.CLICK,groupItemClick);
+				event.menu.addEventListener(MouseEvent.MOUSE_OVER,mouseOverHandler);
+				event.menu.addEventListener(MouseEvent.MOUSE_OUT,mouseOutHandler);
+			}
+			
+			/**
+			 * Show handler ma kłopotu jak nie jest obsluzony hide handler.
+			 */
+			protected function tempMenu_menuHideHandler(event:MenuEvent):void
+			{
+				// narazie lepiej zostawić, bo show handler ma kłopotu jak nie jest obsluzony hide handler
+			}
+			
+			/**
+			 * Kliknięcie na historię powoduję otwarcie się odpowiedniego podelementu.
+			 */
+			protected function pasekAdresu_linkHandler(event:TextEvent):void
+			{
+				wyswietlPodanyArtykulID(event.text);
+				event.stopImmediatePropagation();
+				event.stopPropagation();
+			}
+			
+			
+			/**
+			 * Zachowanie gdy wjedziemy myszką na menu, zmieniamy wygląd myszki na 'linkowa łapkę'.
+			 */
+			protected function mouseOverHandler(event:MouseEvent):void
+			{				
+				Mouse.cursor = MouseCursor.BUTTON;
+			}
+			
+			/**
+			 * Zachowanie gdy wyjedziemy myszką z menu, zmieniamy wygląd myszki spowrotem na zwykły.
+			 */
+			protected function mouseOutHandler(event:MouseEvent):void
+			{
+				Mouse.cursor = MouseCursor.AUTO;
+			}
+			
+			
+			
+			protected function search_clickHandler(event:MouseEvent):void
+			{
+				parentDocument.viewer.setArticleID("searchViewer",searchText.text);
+				//go.selectedIndex=-1;
+			}
+			
+			/**
+			 * Kliknięcie ENTER w search powoduje automatyczne odpalenie szukania
+			 */
+			protected function hgr_keyDownHandler(event:KeyboardEvent):void
+			{
+				if (event.keyCode==Keyboard.ENTER) parentDocument.viewer.setArticleID("searchViewer",searchText.text);
+			}
+			
+			
+			/**
+			 * Wybranie text inputa w search powoduje podświetlenie całego tekstu.
+			 */
+			protected function searchText_focusInHandler(event:FocusEvent):void
+			{
+				searchText.selectAll();
+				//searchText.selectRange(0,searchText.text.length);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+		<s:HTTPService id="pobierzArtykuly"
+					   result="pobierzArtykuly_resultHandler(event)"
+					   fault="faultHandler(event)"
+					   resultFormat="e4x"/>		
+	</fx:Declarations>
+	
+
+	<!-- UI components ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+	
+	-->
+	
+	<s:Group width="100%" height="40">
+		
+		<mx:MenuBar id="tempMenu" labelField="@nazwa"
+					itemRollOver="tempMenu_itemRollOverHandler(event)"
+					itemRollOut="tempMenu_itemRollOutHandler(event)"
+					mouseDown="tempMenu_mouseDownHandler(event)"
+					itemClick="tempMenu_itemClickHandler(event)"
+					rollOut="zmmenuRollOut(event)"
+					menuShow="tempMenu_menuShowHandler(event)"
+					menuHide="tempMenu_menuHideHandler(event)"
+					mouseOver="mouseOverHandler(event)"
+					mouseOut="mouseOutHandler(event)"
+					horizontalCenter="0"
+					verticalCenter="0"
+					textAlign="center"
+					width="100%"
+					cornerRadius="0"
+					height="40"
+					color="#FFFFFF" 
+					symbolColor="#044E15"
+					styleName="menuBar" menuStyleName="popUpMenu"
+					
+					>
+		</mx:MenuBar>
+		<!--rollOverColor="#70E578"-->
+		<s:HGroup width="18%" verticalAlign="middle" height="40" gap="0" paddingBottom="0" right="0" top="0" paddingTop="0">
+			<s:TextInput height="30" contentBackgroundAlpha="0.3" width="88%" id="searchText" focusIn="searchText_focusInHandler(event)" keyDown="hgr_keyDownHandler(event)" text="Search..." borderVisible="false" color="#FFFFFF"/>
+			 <mx:MenuBar id="go" height="38" width="10%" styleName="search"					
+						horizontalCenter="0"
+						cornerRadius="0"
+						verticalCenter="0"
+						click="search_clickHandler(event)">						
+				<mx:dataProvider>
+					<fx:Object label="Go!"/>
+				</mx:dataProvider>
+			</mx:MenuBar>  
+			<!--<mx:LinkButton id="go" height="35" width="30%" styleName="search"					
+						   horizontalCenter="0"
+						   cornerRadius="0"
+						   verticalCenter="0"
+						   click="search_clickHandler(event)"
+						   label="Go!"
+						   rollOverColor="#328755"/>-->
+				
+		</s:HGroup>
+	</s:Group>
+
+		<mx:Text width="100%" paddingLeft="20" paddingRight="20" paddingTop="10" paddingBottom="0" bottom="0" id="pasekAdresu" selectable="true" link="pasekAdresu_linkHandler(event)" textAlign="left" fontSize="14" color="#597D1C"/>		
+</s:VGroup>

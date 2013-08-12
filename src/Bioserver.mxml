@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+Główna funkcja aplikacji w której umieszczamy trzy główne elementy - logo, menu wraz z zawartością
+i stopkę.
+-->
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="500" 
+			   xmlns:components="components.*"
+			   xmlns:men="components.pages.*"
+			   backgroundColor="#000000"
+			   
+			   creationComplete="init()"
+			   applicationComplete="application1_applicationCompleteHandler(event)"
+			   resize="application1_resizeHandler(event)"
+			   >     
+	
+	<s:layout>
+		
+		<s:HorizontalLayout />
+	</s:layout>
+	<fx:Style source="Bioserver.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import components.pages.articleViewer;
+			
+			import data.SWFAddress;
+			
+			import flash.events.ErrorEvent;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.HistoryManager;
+			import mx.managers.IHistoryManagerClient;
+			import mx.managers.ISystemManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import myEvents.IDLinkEvent;
+			
+			import org.igorcosta.hacks.*;
+			
+			import spark.components.BorderContainer;
+			import spark.components.RichEditableText;
+			import spark.skins.spark.BorderContainerSkin;
+			
+			private var adresStrony:String="";
+			
+			/**
+			 * Funkcja zwracająca adres na którym bedzie umieszczona strona.
+			 */ 
+			public function getServerPath():String {
+				//return adresStrony;
+				return "http://antares.cs.put.poznan.pl/bio/";
+				//return "http://bioserver.uphero.com/";
+				//return "http://bioserver.cs.put.poznan.pl/bioserver/";
+				//return "http://cerber.cs.put.poznan.pl/~inf84884/";
+				//return "http://localhost/";
+			}
+			
+			protected function init():void
+			{
+				//przy eksporcie zmienić
+				adresStrony = SWFAddress.getBaseURL()+"/";
+				//Alert.show(adresStrony,"adres");
+				//menu.minHeight = this.height - stopka.height - logo.height - 55;
+				scroll.verticalScrollBar.mouseEnabled = false;
+				tresc.addEventListener(MouseEvent.MOUSE_WHEEL, wheel);
+				
+			}
+			
+			protected function wheel(event:MouseEvent):void
+			{
+				
+				scroll.verticalScrollBar.value -= 8 *event.delta;
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				event.stopPropagation();
+				
+			}
+			
+			
+			/**
+			 * Tutaj obsługujemy wszystkie dotychczas niezłapane błędy na stronie.
+			 */
+			private function uncaughtErrorHandler(e:UncaughtErrorEvent):void {
+				
+				if (e.error is Error)
+				{
+					var error:Error = e.error as Error;
+					Alert.show(error.toString(),"ERROR");
+					
+					
+				}
+				else if (e.error is ErrorEvent)
+				{
+					var errorEvent:ErrorEvent = e.error as ErrorEvent;
+					Alert.show(errorEvent.text.toString(),"ERROR");
+				}
+				else if (e.error is NetStatusEvent)
+				{
+					var er:NetStatusEvent = e.error as NetStatusEvent;
+					Alert.show(er.info.description,"NetStatusError");
+				}
+				else
+				{
+					Alert.show(e.error.toString(),"ERROR");
+				}
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				e.stopPropagation();
+			}
+			
+			/**
+			 * Funkcja zwracająca string z miejscem gdzie będą przechowywane skrypty PHP.
+			 */ 
+			public function getPHPScriptsPath():String {
+				return getServerPath()+"skrypty/"
+				//return "http://localhost/php/";
+			} 
+			
+			/**
+			 * Funkcja zwracająca string z miejscem gdzie będą przechowywane zdjecia.
+			 */
+			public function getImgPath():String {
+				return getServerPath()+"img/"
+				//return "http://localhost/img/";
+			}
+			
+			
+			
+			/**
+			 * Funkcja zwracająca string z miejscem gdzie będą przechowywane swf od pdfow.
+			 */
+			public function getPDFPath():String {
+				return getServerPath()+"pdf/"
+			}
+			
+			/**
+			 * Funkcja zwracająca string z miejscem gdzie będą przechowywane video.
+			 */
+			public function getVideoPath():String {
+				return getServerPath()+"video/"
+			}
+			
+			
+			/**
+			 * Po załadowaniu strony dodajemy obsługę eventów - wystąpienia błędów i komunikacji przegladarka <-> strona
+			 */
+			private function application1_applicationCompleteHandler(event:FlexEvent):void
+			{
+				
+				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtErrorHandler);
+				addEventListener("ArticleChoosed",articleFromBrowser);
+				
+				try
+				{
+					var d:Date = SWF.readCompilationDate(this.loaderInfo.bytes);
+					versionText.text = d.toString();
+				}
+				catch (error:Error)
+				{
+					Alert.show("<Error> " + error.message,"error");
+				}
+				
+			}		
+			
+			/**
+			 * Handler dla ręcznie obdpalanego elementu, naciśnięcia na wewnętrzny link - do innej strony.
+			 */
+			private function articleFromBrowser(event:DataEvent):void
+			{
+				menu.articleFromBrowser(event);
+				//Alert.show("asd","ooooo");
+			}
+			
+			protected function tresc_mouseWheelHandler(event:MouseEvent):void
+			{
+				event.preventDefault();
+			}
+			
+			/**
+			 * Obsłgujemy nacisnięcie linku wewnętrznego w articleViewerze
+			 */
+			protected function viewer_idChangedHandler(event:IDLinkEvent):void
+			{
+				menu.wyswietlPodanyArtykulID(event.IDSelected);
+			}
+			
+
+			protected function application1_resizeHandler(event:ResizeEvent):void
+			{
+				this.validateNow();
+				this.validateDisplayList();
+			}
+
+
+
+		]]>
+	</fx:Script>
+	
+	<!-- Declarations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	
+	<fx:Declarations>
+		
+		
+		
+	</fx:Declarations>
+	
+	<!-- UI components ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<s:BorderContainer backgroundImage="@Embed(source='assets/left.jpg')" width="13%" height="100%" borderWeight="0"			  
+					   horizontalCenter="0" verticalCenter="0" borderVisible="false">
+			<components:stopka id="stopka2" minWidth="115" height="100%" left="15" verticalCenter="0"/>
+	</s:BorderContainer>
+
+	<s:VGroup width="87%" minHeight="300" minWidth="500" height="100%"  textAlign="center" horizontalAlign="center" gap="0" >
+		
+		<components:logo id="logo"  width="100%" height="20%"/>
+
+
+		<men:mainMenu width="100%" id="menu" paddingTop="0" paddingBottom="0" bottom="0" />
+		<s:Scroller id="scroll" left="2" right="2" top="1" width="100%" height="100%" > 
+			<s:VGroup id="tresc"
+					  textAlign="center" horizontalAlign="center" gap="10" horizontalCenter="0" bottom="0" paddingBottom="10" top="20" width="100%" minWidth="600" height="100%"
+					  mouseWheel="tresc_mouseWheelHandler(event)">
+				<men:articleViewer id="viewer" width="100%" height="100%" textAlign="center" idChanged="viewer_idChangedHandler(event)"/>
+				<s:Label id="versionText" fontSize="8"/>
+			</s:VGroup>			
+		</s:Scroller>      
+		
+		<!--
+		<components:stopka id="stopka" width="100%" bottom="5" left="5" right="5" />
+		 -->
+		
+	</s:VGroup>
+	
+</s:Application>

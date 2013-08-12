@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- test galerii do wyrzucenia potem  -->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:gl="components.pages.admin_subpage.gallery.*"
+		 width="100%"
+		 height="100%"
+		 initialize="init()" xmlns:ns="components.pages.admin_subpage.Video.*"
+		 >
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			
+			protected var myXML:XML;
+
+			protected function init():void
+			{
+				myXML = 
+					<root>
+						<node>
+							 <label>Flex</label>
+							 <thumbnailImage>assets/fx_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/fx_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Flash</label>
+							 <thumbnailImage>assets/fl_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/fl_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Illustrator</label>
+							 <thumbnailImage>assets/ai_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/ai_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Dreamweaver</label>
+							 <thumbnailImage>assets/dw_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/dw_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>ColdFusion</label>
+							 <thumbnailImage>assets/cf_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/cf_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Flash Player</label>
+							 <thumbnailImage>assets/fl_player_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/fl_player_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Fireworks</label>
+							 <thumbnailImage>assets/fw_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/fw_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Lightroom</label>
+							 <thumbnailImage>assets/lr_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/lr_appicon.jpg</fullImage>
+						</node>
+						<node>
+							 <label>Photoshop</label>
+							 <thumbnailImage>assets/ps_appicon-tn.gif</thumbnailImage>
+							 <fullImage>assets/ps_appicon.jpg</fullImage>
+						</node>
+			</root>;
+				
+				//mojaGaleria.setGallery(myXML);
+			}
+
+		]]>
+		
+		
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:VGroup>

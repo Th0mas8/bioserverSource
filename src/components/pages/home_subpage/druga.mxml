@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+Strona testowa - DO WYRZUCENIA
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:fp="com.devaldi.controls.flexpaper.*"
+		 width="100%">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%">
+		<s:RichText width="100%" textAlign="left">
+			
+			
+			* P. Łukasiak, J. Błażewicz, M. Miłostan,<s:br/>
+			Some operations research methods for analyzing protein sequences and structures,
+			Annals of Operations Research, 175, 2010, pp. 9-35<s:br/><s:br/>
+			* S. Wąsik, P. Jackowiak, P. Kędziora, J. Krawczyk, P. Formanowicz, M. Figlerowicz, J. Błażewicz,<s:br/>
+			Towards prediction of HCV therapy efficiency,
+			Computational and Mathematical Methods in Medicine, 2010, DOI 10.1080/17486700903170712<s:br/><s:br/>
+			* J.Błażewicz, M.Borowski, P.Formanowicz, T.Głowacki,<s:br/>
+			Genetic and tabu search algorithms for peptide assembly problems,
+			RAIRO - Operations Research, 2010, to appear<s:br/><s:br/>
+			* J.Błażewicz, J.Musiał, M.Kovalyov, A.Urbański, A.Wojciechowski,<s:br/>
+			Internet Shopping Optimization problem,
+			International Journal of Applied Mathematics and Computer Science, 2010, to appear<s:br/><s:br/>
+			* J.Błażewicz, P.Formanowicz, P.Kędziora, P.Marciniak, P.Taront,<s:br/>
+			Adaptive memory programming: Local search parallel algorithms for phylogenetic tree construction,
+			Annals of Operations Research, 2010, to appear<s:br/><s:br/>
+			* J. Blazewicz, K. Ecker, T. Kis, C.N. Potts, M. Tanas, J. Whitehead,<s:br/>
+			Scheduling of coupled tasks with unit processing times,
+			Journal of Scheduling, 13, 2010, pp. 453-461<s:br/><s:br/>
+			* J. Blazewicz, T.C.E. Cheng, M. Machowiak, C. Oguz,<s:br/>
+			Berth and quay crane allocation: a moldable task scheduling model,
+			Journal of the Operational Research Society, 2010, to appear<s:br/><s:br/>
+			* S. Bak, J. Blazewicz, G. Pawlak, M. Plaza, E.K. Burke, G. Kendall,<s:br/>
+			A parallel branch and bound approach to the rectangular guillotine strip cutting problem,
+			INFORMS J. on Computing, 2010, to appear<s:br/><s:br/>
+			* J.Blazewicz, V.Boljuncic, S.Martello, J.Skorin-Kapov,<s:br/>
+			Editorial. Combinatorial Optimization Issues in Scheduling,
+			Journal of Scheduling, 2010, to appear<s:br/><s:br/>
+			* M.Bender, J.Blazewicz, E.Pesch, D.Trystram, G.Zhang,<s:br/>
+			New challenges in scheduling theory,
+			Journal of Scheduling, 13, 2010, pp. 451-452<s:br/><s:br/>
+			
+		</s:RichText>
+		<fp:FlexPaperViewer width="640" height="480" FitPageOnLoad="true" SwfFile="aac.swf" />
+	</s:VGroup>
+</s:Group>

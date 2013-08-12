@@ -1,0 +1,8 @@
+//TODO usunac ponizej do return to jest do lapania kamery 
+				var stream:MJPGElement = new MJPGElement;
+				//stream.width=320;
+				//stream.height=240;     
+				//cam.connect('http://192.168.0.100/cgi-bin/nph-zms?mode=jpeg&monitor=1&scale=100&maxfps=10&buffer=1000&user=username&password=password', 'user', 'pass');
+				elements.addElement(stream);
+				elements.validateNow();
+				effect1.play([elements]);
