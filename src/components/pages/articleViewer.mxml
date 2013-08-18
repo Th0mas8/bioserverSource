@@ -226,6 +226,12 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 					//setArticleID(o.a);
 				}*/
 			}
+			
+			private function onChangeSize(obj:Object)
+			{
+				dispatchEvent(new Event("changeSize"));
+			}
+			
 			/**
 			 * Funkcja pobierająca i wyświetlająca artykuł o podanym ID.
 			 * 
@@ -242,8 +248,17 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 				
 				///TODO
 				//!!!!!TODO usunac ponizej
+				
+				var numb:Number = parent.height;
+				this.percentHeight = 100;
 				var CurrentLiveVideo:liveVideo = new liveVideo();
-				elements.addElement(CurrentLiveVideo);
+				CurrentLiveVideo.addEventListener("changeSize", onChangeSize);
+				if(elements.numChildren==0)
+				{
+				 elements.addElement(CurrentLiveVideo);
+				}
+				this.validateDisplayList();
+				this.validateNow();
 				return
 				
 				//TODO TILL here

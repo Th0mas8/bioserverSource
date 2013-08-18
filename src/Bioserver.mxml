@@ -19,6 +19,12 @@ i stopkę.
 		
 		<s:HorizontalLayout />
 	</s:layout>
+	
+	<s:states>
+		<!-- Define the new view states. -->
+		<s:State name="default"/>
+		<s:State name="maximized"/>
+	</s:states>    
 	<fx:Style source="Bioserver.css"/>
 	
 	<fx:Script>
@@ -147,12 +153,19 @@ i stopkę.
 				return getServerPath()+"video/"
 			}
 			
+			private function onChangeSize(obj:Object)
+			{
+				this.changeSizeState();
+			}
+			
 			
 			/**
 			 * Po załadowaniu strony dodajemy obsługę eventów - wystąpienia błędów i komunikacji przegladarka <-> strona
 			 */
 			private function application1_applicationCompleteHandler(event:FlexEvent):void
 			{
+				this.currentState="default";
+				this.viewer.addEventListener("changeSize", onChangeSize);
 				
 				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtErrorHandler);
 				addEventListener("ArticleChoosed",articleFromBrowser);
@@ -198,7 +211,20 @@ i stopkę.
 				this.validateDisplayList();
 			}
 
-
+			protected function changeSizeState():void
+			{
+				if(this.currentState == "default")
+				{
+				 	this.currentState = "maximized";
+				}
+				else
+				{
+					this.currentState = "default";
+				}
+				
+				this.validateDisplayList();
+				this.validateNow();
+			}
 
 		]]>
 	</fx:Script>
@@ -213,14 +239,14 @@ i stopkę.
 	
 	<!-- UI components ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
-	<s:BorderContainer backgroundImage="@Embed(source='assets/left.jpg')" width="13%" height="100%" borderWeight="0"			  
+	<s:BorderContainer backgroundImage="@Embed(source='assets/left.jpg')" width.default="13%" width.maximized="0" height="100%" borderWeight="0"			  
 					   horizontalCenter="0" verticalCenter="0" borderVisible="false">
-			<components:stopka id="stopka2" minWidth="115" height="100%" left="15" verticalCenter="0"/>
+			<components:stopka id="stopka2" minWidth.default="115" minWidth.maximized="0" height="100%" left="15" verticalCenter="0"/>
 	</s:BorderContainer>
 
-	<s:VGroup width="87%" minHeight="300" minWidth="500" height="100%"  textAlign="center" horizontalAlign="center" gap="0" >
+	<s:VGroup width.default="87%" width.maximized="100%" minHeight="300" minWidth="500" height="100%"  textAlign="center" horizontalAlign="center" gap="0" >
 		
-		<components:logo id="logo"  width="100%" height="20%"/>
+		<components:logo id="logo"  width="100%" height.default="20%" height.maximized="0"/>
 
 
 		<men:mainMenu width="100%" id="menu" paddingTop="0" paddingBottom="0" bottom="0" />
@@ -236,7 +262,6 @@ i stopkę.
 		<!--
 		<components:stopka id="stopka" width="100%" bottom="5" left="5" right="5" />
 		 -->
-		
 	</s:VGroup>
 	
 </s:Application>

@@ -5,6 +5,7 @@
 		 xmlns:flash="flash.media"
 		 width="100%" height="100%"
 		 creationComplete="LiveVideoInitilize(event)"
+		 remove="removeHandler(event)"
 		 verticalAlign="middle"
 		 horizontalAlign="center"
 		 resize="mainResizeHandler(event)">
@@ -17,12 +18,14 @@
 			import flash.net.NetConnection;
 			import flash.net.NetStream;
 			
+			import flashx.textLayout.formats.Float;
 			import flashx.textLayout.tlf_internal;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
 			import mx.events.ResizeEvent;
 			import mx.rpc.AbstractOperation;
 			import mx.rpc.events.*;
@@ -45,7 +48,7 @@
 			private var ncDesktop:NetConnection;
 			private var httpServer = "http://";
 			private var rtmpServer = "rtmp://";
-			public var serverURL = "192.168.1.7";
+			public var serverURL = "192.168.1.3";
 			public var serverRTMPPort = "1935";
 			public var serverHTTPPort = "5080";
 			public var serverFolder = "openmeetings";
@@ -59,6 +62,9 @@
 			
 			private var cameraIsInitialized:Boolean;
 			private var desktopIsInitialized:Boolean;
+			
+			private var cameraLocalization:CameraLocation;
+			private var rememberVolume:Number;
 			
 			
 		//	private var uUserServiceWebService:WebService;
@@ -80,23 +86,28 @@
 			private var meta:Object;
 			//CallService_btn.addEventListener(MouseEvent.CLICK, InitWebService);
 			
+			private var positionCameraX:Number;
+			private var positionCameraY:Number;
+			
+			private var uRoomServiceWebServiceCamera:WebService;
+			private var uUserServiceWebServiceCamera:WebService;
+			
+			private var originalWidth:Number;
+			private var originalHeight:Number; 
+			
+			/**
+			 * The SoundTransform object used to set the volume for the NetStream.
+			 */
+			private var volumeTransform:SoundTransform;			
 			
 			private function InitWebService():void
 			{				
-				var uRoomServiceWebServiceCamera = new WebService();
-				var RoomServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/RoomService?wsdl";
-				uRoomServiceWebServiceCamera.loadWSDL(RoomServiceURL);
-
-				var uUserServiceWebServiceCamera = new WebService();
-				//we are loading CAMERA and DESKTOP in different connections - onlhy one stream per connection is allowed
-				uUserServiceWebServiceCamera.addEventListener(LoadEvent.LOAD,  function (e:LoadEvent):void
-				{
-					BuildServiceRequest(Medium.CAMERA,uUserServiceWebServiceCamera,uRoomServiceWebServiceCamera);
-				});
-				var UserServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/UserService?wsdl";
-				uUserServiceWebServiceCamera.loadWSDL(UserServiceURL);	
+				trace("init one more time");
 				
 				/////////////////////////////////
+				//FIRST LOAD DESKTOP
+				var RoomServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/RoomService?wsdl";
+				var UserServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/UserService?wsdl";
 				
 				var uRoomServiceWebServiceDesktop = new WebService();
 				//var RoomServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/RoomService?wsdl";
@@ -239,6 +250,8 @@
 								this.streamDestkopPublishName = obj.streamPublishName;	
 								this.videoDesktopWidth = obj.VWidth;
 								this.videoDesktopHeight = obj.VHeight;
+								this.originalHeight = obj.VHeight;
+								this.originalWidth = obj.VWidth;
 							}
 							
 							if(obj.avsettings=="av" && obj.usersetting != "" && medium == Medium.CAMERA)
@@ -295,12 +308,40 @@
 			{
 				throw "ERROR: operation " + lastOperation + "returned error: " + event.toString();
 			}
+			
+			/**
+			 * Event listener for the volumeSlider instance. Called when the user 
+			 * changes the value of the volume slider.
+			 */
+			private function volumeChangeHandler(e:Event):void {
+				// Set the volumeTransform's volume property to the current value of the 
+				// Slider and set the NetStream object's soundTransform property.
+				volumeTransform.volume = volumeSlider.value;
+				if(nsCamera!= null)
+				{
+				 nsCamera.soundTransform = volumeTransform;
+				}
+			}
 
 			protected function LiveVideoInitilize(event:FlexEvent):void
 			{
-				this.cameraIsInitialized = false;
-				this.desktopIsInitialized = false;
-				this.InitWebService();
+				 this.cameraIsInitialized = false;
+				 this.desktopIsInitialized = false;
+				 volumeTransform = new SoundTransform();
+				 volumeSlider.value = volumeTransform.volume;
+				 volumeSlider.minimum = 0;
+				 volumeSlider.maximum = 1;
+				 volumeSlider.snapInterval = 0.1;
+				 volumeSlider.tickInterval = volumeSlider.snapInterval;
+				 this.rememberVolume = 1.0;
+				 
+				 // Setting the liveDragging property to true causes the Slider 
+				 // instance's change event to be dispatched whenever the slider is 
+				 // moved, rather than when the user releases the slider thumb.
+				 volumeSlider.liveDragging = true;
+				 volumeSlider.addEventListener(Event.CHANGE, volumeChangeHandler);
+				
+				 this.InitWebService();
 			}
 			
 			///////////////////////////////////////////////////////
@@ -324,13 +365,27 @@
 					case Medium.DESKTOP:
 						this.desktopIsInitialized = true;
 						netConnectionInit(medium,ncDesktop);
+						
+						//now we are loading camera
+						var uRoomServiceWebServiceCamera = new WebService();
+						var RoomServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/RoomService?wsdl";
+						uRoomServiceWebServiceCamera.loadWSDL(RoomServiceURL);
+						
+						var uUserServiceWebServiceCamera = new WebService();
+						//we are loading CAMERA and DESKTOP in different connections - onlhy one stream per connection is allowed
+						uUserServiceWebServiceCamera.addEventListener(LoadEvent.LOAD,  function (e:LoadEvent):void
+						{
+							BuildServiceRequest(Medium.CAMERA,uUserServiceWebServiceCamera,uRoomServiceWebServiceCamera);
+						});
+						var UserServiceURL:String = httpServer + serverURL + ":" + serverHTTPPort + "/" + serverFolder + "/services/UserService?wsdl";
+						uUserServiceWebServiceCamera.loadWSDL(UserServiceURL);	
 					break;
 				}
 			}
 			
 			private function netConnectionInit(medium:Medium,nc:NetConnection):void
 			{
-				//trace("netConnectionInit");
+				trace("netConnectionInit");
 				nc = new NetConnection();
 				
 				if(!nc.hasEventListener(NetStatusEvent.NET_STATUS))
@@ -348,6 +403,8 @@
 				{
 					case Medium.DESKTOP:
 						rtmpServerURL += roomIDDesktop;
+						//tmp to prevent CAMERA from being behind DESKTOP, DESKTOp must be first loaded, and camera second
+						
 						break;
 					case Medium.CAMERA:
 						rtmpServerURL += roomIDCamera;
@@ -356,6 +413,7 @@
 					break;
 				}
 				nc.connect(rtmpServerURL);
+				this.mainResizeHandler(new ResizeEvent("Event"));
 			}
 			
 			public function onBWCheck(... rest):Number { 
@@ -401,7 +459,8 @@
 								
 								uic.addChild(vidDesktop);
 								nsDesktop.play(this.streamDestkopPublishName);		
-								vidDesktop.z = 0;
+								//vidDesktop.z = 0;
+								this.mainResizeHandler(new ResizeEvent("Event"));
 								break;
 							}
 							
@@ -423,15 +482,16 @@
 								
 								uic.addChild(vidCamera);
 								nsCamera.play(this.streamCameraPublishName);
-								vidCamera.x = this.videoDesktopWidth;
-								vidCamera.z = 10;
+								//vidCamera.x = this.videoDesktopWidth;
+								//vidCamera.z = 10;
+								this.mainResizeHandler(new ResizeEvent("Event"));
 								break;
 							}
 						}
 						
 						//if(this.cameraIsInitialized && this.desktopIsInitialized)
 						//{
-							uic.height = this.videoDesktopHeight + this.videoCameraHeight;
+							//uic.height = this.videoDesktopHeight + this.videoCameraHeight;
 					//	}
 					}		
 				break;
@@ -531,21 +591,159 @@
 				panel.validateDisplayList();
 				panel.validateNow();
 				
+				
 				//var ratio:double = this.videoDesktopWidth / this.videoDesktopHeight;
-				if(this.vidDesktop != null)
+				if(this.vidDesktop != null && this.vidCamera != null)
 				{
+					this.recalculatePositionOfCamera();
+					
 					//TODO zachownie ratio przy zmianie
-					this.vidDesktop.height = 0.8 * this.panel.height;
-					this.vidDesktop.width = 0.8 * this.panel.width;
+					//this.vidDesktop.height = 0.8 * this.panel.height;
+					//this.vidDesktop.width = 0.8 * this.panel.width;
+					
+					if(this.originalHeight > (0.8 * this.panel.height))
+					{
+					  this.vidDesktop.height = 0.8 * this.parentApplication.height;	
+					  this.vidDesktop.width = 0.8 * this.panel.width;
+					  this.uic.height = this.parentApplication.height;
+					}
+					else
+					{
+						this.vidDesktop.height = this.originalHeight;
+						this.vidDesktop.width = this.originalWidth;	
+						this.uic.height = this.vidDesktop.height + this.vidCamera.height;
+					}
 					this.vidDesktop.x = 0.1 * this.panel.width;
 					this.vidDesktop.y = 0.1 * this.panel.height
-					this.vidCamera.x = 0.05 * this.panel.width;
-					this.vidCamera.y = 0.05 * this.panel.height;
-					this.vidCamera.z = 10;
+					this.vidCamera.x = positionCameraX; 
+					this.vidCamera.y = positionCameraY;
 					
-					this.uic.validateDisplayList();
-					this.uic.validateNow();
+					this.validateDisplayList();
+					this.validateNow();
 				}
+			}
+			
+			private function recalculatePositionOfCamera():void
+			{
+				switch(this.cameraLocalization)
+				{
+					case CameraLocation.UPPER_LEFT:
+						positionCameraX = 0.05 * this.panel.width;
+						positionCameraY = 0.05 * this.panel.height;
+						break;
+					
+					case CameraLocation.LOWER_LEFT:
+						positionCameraX = 0.05 * this.panel.width;
+						positionCameraY = (0.95 * this.panel.height) - this.vidCamera.height; 
+						break;
+					
+					case CameraLocation.UPPER_RIGHT:
+						positionCameraX = (0.95 * this.panel.width) - this.vidCamera.width;
+						positionCameraY = 0.05 * this.panel.height; 
+						break;
+					
+					case CameraLocation.LOWER_RIGHT:
+						positionCameraX = (0.95 * this.panel.width) - this.vidCamera.width;
+						positionCameraY = (0.95 * this.panel.height) - this.vidCamera.height; 
+						break;
+					
+					default:
+						//same as UPPER_LEFT
+						positionCameraX = 0.05 * this.panel.width;
+						positionCameraY = 0.05 * this.panel.height;
+						break;
+				}
+			}
+
+
+			
+
+			protected function cameraLocationChanged(event:ItemClickEvent):void
+			{
+				switch(event.index)
+				{
+					case 0:
+						this.cameraLocalization = CameraLocation.UPPER_LEFT;
+					break;
+					
+					case 1:
+						this.cameraLocalization = CameraLocation.LOWER_LEFT;
+					break;
+					
+					case 2:
+						this.cameraLocalization = CameraLocation.UPPER_RIGHT;
+					break;
+					
+					case 3:
+						this.cameraLocalization = CameraLocation.LOWER_RIGHT;
+					break;
+					
+					default:
+						this.cameraLocalization = CameraLocation.UPPER_LEFT;
+					break;
+				}
+				
+				this.mainResizeHandler(new ResizeEvent("Resize event"));
+			}
+
+
+			protected function play_pause_btn_clickHandler(event:MouseEvent):void
+			{
+				if(this.play_pause_btn.label == "Play")
+				{
+					this.play_pause_btn.label = "Stop";
+					this.InitWebService();
+				}
+				else
+				{
+					this.play_pause_btn.label = "Play";
+					if(this.uic.numChildren!= 0)
+					{
+					 this.uic.removeChildAt(1);
+					 this.uic.removeChildAt(0);
+					 this.ncCamera = new NetConnection();
+					 this.ncDesktop = new NetConnection();
+					}
+				}
+			}
+
+
+			protected function mute_btn_clickHandler(event:MouseEvent):void
+			{
+				if(this.mute_btn.label == "Mute")
+				{
+					this.mute_btn.label = "Muted";
+					this.rememberVolume = this.volumeSlider.value;
+					this.volumeSlider.value = 0;
+				}
+				else
+				{
+					this.mute_btn.label = "Mute";
+					this.volumeSlider.value = this.rememberVolume;
+				}
+				
+				volumeChangeHandler(new Event("event"));
+			}
+
+
+			protected function fullscreen_btn_clickHandler(event:MouseEvent):void
+			{
+				if(this.fullscreen_btn.label == "Full Screen")
+				{
+					this.fullscreen_btn.label = "Minimize";
+				}
+				else
+				{
+					this.fullscreen_btn.label = "Full Screen";
+				}
+				
+				dispatchEvent(new Event("changeSize"));
+			}
+
+
+			protected function removeHandler(event:FlexEvent):void
+			{
+				trace("REMOVE");
 			}
 
 		]]>
@@ -557,4 +755,21 @@
 	<mx:Panel width="100%" height="100%" id="panel" verticalAlign="middle" horizontalAlign="center" headerHeight="0">
 		<mx:UIComponent id="uic" width="100%" height="100%"  />			
 	</mx:Panel >
+	<s:HGroup>
+		<mx:ToggleButtonBar id="cameraLocation" toolTip="Camera Location" horizontalGap="5" selectedIndex="0" itemClick="cameraLocationChanged(event)">
+			<mx:dataProvider>
+				<fx:String>Upper-Left</fx:String>
+				<fx:String>Lower-Left</fx:String>
+				<fx:String>Upper-Right</fx:String>
+				<fx:String>Lower-Right</fx:String>
+			</mx:dataProvider>
+		</mx:ToggleButtonBar>
+		<mx:Button id="play_pause_btn" label="Stop" click="play_pause_btn_clickHandler(event)"/>
+		<s:HGroup width="100%" horizontalAlign="center">
+			<s:Label id="volume" text="Volume:" />
+			<mx:HSlider id="volumeSlider"  />
+		</s:HGroup>
+		<mx:Button id="mute_btn" label="Mute" click="mute_btn_clickHandler(event)"/>
+		<mx:Button id="fullscreen_btn" label="Full Screen" click="fullscreen_btn_clickHandler(event)"/>
+	</s:HGroup>
 </s:VGroup>
