@@ -54,6 +54,9 @@
 			public var serverFolder = "openmeetings";
 			public var roomIDDesktop = "2";
 			public var roomIDCamera = "1";
+			//TODO remove true password
+			public var userName:String = "Thomas";
+			public var password:String = "heroes";
 			private var nsDesktop:NetStream;
 			private var vidDesktop:Video;
 			private var nsCamera:NetStream;
@@ -74,8 +77,6 @@
 			//todo remove true credentials
 			private var sessionIDCamera:String;
 			private var sessionIDDesktop:String;
-			public var userName:String = "Thomas";
-			public var password:String = "heroes";
 			private var lastOperation:String;
 			private var streamDestkopPublishName:String = "";
 			private var videoDesktopHeight:int;
@@ -696,13 +697,16 @@
 				}
 				else
 				{
-					this.play_pause_btn.label = "Play";
-					if(this.uic.numChildren!= 0)
+					if(this.uic != null)
 					{
-					 this.uic.removeChildAt(1);
-					 this.uic.removeChildAt(0);
-					 this.ncCamera = new NetConnection();
-					 this.ncDesktop = new NetConnection();
+						this.play_pause_btn.label = "Play";
+						if(this.uic.numChildren!= 0)
+						{
+						 this.uic.removeChildAt(1);
+						 this.uic.removeChildAt(0);
+						 this.ncCamera = new NetConnection();
+						 this.ncDesktop = new NetConnection();
+						}
 					}
 				}
 			}
@@ -764,7 +768,7 @@
 				<fx:String>Lower-Right</fx:String>
 			</mx:dataProvider>
 		</mx:ToggleButtonBar>
-		<mx:Button id="play_pause_btn" label="Stop" click="play_pause_btn_clickHandler(event)"/>
+		<mx:Button id="play_pause_btn" label="Play" click="play_pause_btn_clickHandler(event)"/>
 		<s:HGroup width="100%" horizontalAlign="center">
 			<s:Label id="volume" text="Volume:" />
 			<mx:HSlider id="volumeSlider"  />

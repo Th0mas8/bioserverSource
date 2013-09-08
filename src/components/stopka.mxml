@@ -79,6 +79,8 @@
 
 			protected function group1_creationCompleteHandler(event:FlexEvent):void
 			{
+				
+				//TODO removed because there are not in server
 				pobierzLoga.url = FlexGlobals.topLevelApplication.getPHPScriptsPath()+"pobAllLoga.php";
 				pobierzLoga.send();
 			}

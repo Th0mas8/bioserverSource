@@ -248,6 +248,7 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 				
 				///TODO
 				//!!!!!TODO usunac ponizej
+				/* left from experiments with liveVideo
 				
 				var numb:Number = parent.height;
 				this.percentHeight = 100;
@@ -260,7 +261,7 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 				this.validateDisplayList();
 				this.validateNow();
 				return
-				
+				*/
 				//TODO TILL here
 				
 				if (wait) {
@@ -365,40 +366,65 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 				//sprawdzamy każdy element w pobranej liście i kierujemy treść do odpowiedniego konstruktora
 				for each (seg in xmlList)
 				{
-					if (seg.rodzaj=="table"){
-						showTable(seg.tresc.row);
-					} 
-					else if( seg.rodzaj=="textFlow")
+					switch(seg.rodzaj.toString())
 					{
-						tmp = eraseXmlTag(seg.tresc);
-						var content:String = seg.tresc.toString();
-						var z:XML = XML(tmp);
-						showText(z);
+						case "table":
+							showTable(seg.tresc.row);
+							break;
+						case "textFlow":
+							tmp = eraseXmlTag(seg.tresc);
+							var content:String = seg.tresc.toString();
+							var z:XML = XML(tmp);
+							showText(z);
+							break;
+						case "pdf":
+							var tt:PDFElement =new PDFElement;						
+							elements.addElement(tt);
+							tt.setPDF(FlexGlobals.topLevelApplication.getPDFPath()+seg.tresc.toString());
+							//tt.validateNow();
+							//tt.pdf.fitHeight();
+							tt.pdf.validateNow();
+							tt.pdf.validateSize();	
+							tt.pdf.addEventListener(DocumentLoadedEvent.DOCUMENT_LOADED,endFun);
+							break;
+						case "gallery":
+							var tt2:galleryItem = new galleryItem;
+							tt2.setGallery(XML(seg.tresc));
+							elements.addElement(tt2);
+							break;
+						case "video":
+							var tt3:VideoJukeBox = new VideoJukeBox;
+							tt3.setVideo(seg.tresc.toString());
+							elements.addElement(tt3);
+							break;
+						case "liveVideo":
+							this.percentHeight = 100;
+							var CurrentLiveVideo:liveVideo = new liveVideo();
+							CurrentLiveVideo.addEventListener("changeSize", onChangeSize);
+							
+							var URLisSet:String = seg.tresc.main.URL.toString();
+							if(URLisSet != "")
+							{
+								Alert.show("No data set in live Video", "Error");
+							}
+							else
+							{
+								CurrentLiveVideo.serverURL = seg.tresc.main.serverURL.toString();
+								CurrentLiveVideo.serverRTMPPort = seg.tresc.main.serverRTMPPort.toString();
+								CurrentLiveVideo.serverHTTPPort = seg.tresc.main.serverHTTPPort.toString();
+								CurrentLiveVideo.serverFolder = seg.tresc.main.serverFolder.toString();
+								CurrentLiveVideo.roomIDDesktop = seg.tresc.main.serverRoomIDDesktop.toString();
+								CurrentLiveVideo.roomIDCamera = seg.tresc.main.serverRoomIDCamera.toString();
+								CurrentLiveVideo.userName = seg.tresc.main.serverLogin.toString();
+								CurrentLiveVideo.password = seg.tresc.main.serverPassword.toString();
+							}	
+							elements.addElement(CurrentLiveVideo);
+							break;
+						default:
+							Alert.show("Unknown kind of article to show: " + seg.rodzaj, "Error");
+							break;
 					}
-					else if (seg.rodzaj=="pdf")
-					{
-						var tt:PDFElement =new PDFElement;						
-						elements.addElement(tt);
-						tt.setPDF(FlexGlobals.topLevelApplication.getPDFPath()+seg.tresc.toString());
-						//tt.validateNow();
-						//tt.pdf.fitHeight();
-						tt.pdf.validateNow();
-						tt.pdf.validateSize();	
-						tt.pdf.addEventListener(DocumentLoadedEvent.DOCUMENT_LOADED,endFun);
-					}
-					else if (seg.rodzaj == "gallery")
-					{
-						var tt2:galleryItem = new galleryItem;
-						tt2.setGallery(XML(seg.tresc));
-						elements.addElement(tt2);
-					}
-					else if (seg.rodzaj == "video")
-					{
-						var tt3:VideoJukeBox = new VideoJukeBox;
-						tt3.setVideo(seg.tresc.toString());
-						elements.addElement(tt3);
-					}
-					
+										
 				}
 				/*
 				Przeglądamy wszystkie TextArea, aby ich wielkość wyrównała się do zawartości jaką posiadają, inaczej 
