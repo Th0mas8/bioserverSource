@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:ns="components.pages.admin_subpage.VideoJukebox.*"
+		 width="100%" height="100%"
+		 creationComplete="main()"
+		 remove="removeHandler(event)"
+		 verticalAlign="middle"
+		 horizontalAlign="center"
+		 resize="mainResizeHandler(event)"
+		 
+		 >
+	<fx:Metadata>
+		[Event(name="selectedChanged")]
+	</fx:Metadata>
+	
+	<s:states>  
+		<s:State name="hiddenCheckpoints"/>
+		<s:State name="shownCheckpoints"/>
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import data.*;
+			import data.Medium;
+			
+			import flash.media.Video;
+			import flash.net.NetConnection;
+			import flash.net.NetStream;
+			
+			import flashx.textLayout.formats.Float;
+			import flashx.textLayout.tlf_internal;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+			import mx.events.ListEvent;
+			import mx.events.ResizeEvent;
+			import mx.rpc.AbstractOperation;
+			import mx.rpc.events.*;
+			import mx.rpc.soap.*;
+			import mx.utils.*;
+			import mx.utils.object_proxy;
+			
+			import org.osmf.net.NetClient;
+			import org.osmf.net.dynamicstreaming.DynamicStreamingResource;
+			
+			import spark.components.mediaClasses.DynamicStreamingVideoItem;
+			import spark.components.mediaClasses.DynamicStreamingVideoSource;
+			
+			//	import valueObjects.Sessiondata;
+			
+			private var ncCamera:NetConnection;
+			private var ncDesktop:NetConnection;
+			private var nsDesktop:NetStream;
+			private var vidDesktop:Video;
+			private var nsCamera:NetStream;
+			private var vidCamera:Video;
+			public var Id:String;
+			
+			private var cameraIsInitialized:Boolean;
+			private var desktopIsInitialized:Boolean;
+			
+			private var cameraLocalization:CameraLocation;
+			private var rememberVolume:Number;
+			
+			
+			[bindable]
+			public var TreeXML:XMLListCollection = new XMLListCollection();
+			
+			private var sessionIDCamera:String;
+			private var sessionIDDesktop:String;
+			private var lastOperation:String;
+			private var videoCameraHeight:int;
+			private var videoCameraWidth:int;
+			//CallService_btn.addEventListener(MouseEvent.CLICK, InitWebService);
+			
+			private var positionCameraX:Number;
+			private var positionCameraY:Number;
+			
+			private var uRoomServiceWebServiceCamera:WebService;
+			private var uUserServiceWebServiceCamera:WebService;
+			
+			private var originalWidth:Number;
+			private var originalHeight:Number; 
+			
+			
+			/**
+			 * The SoundTransform object used to set the volume for the NetStream.
+			 */
+			private var volumeTransform:SoundTransform;			
+			
+			private function InitWebService():void
+			{			
+			}
+			
+			//start of websession functions receivers
+			
+			
+			/**
+			 * Event listener for the volumeSlider instance. Called when the user 
+			 * changes the value of the volume slider.
+			 */
+			private function volumeChangeHandler(e:Event):void {
+				// Set the volumeTransform's volume property to the current value of the 
+				// Slider and set the NetStream object's soundTransform property.
+				volumeTransform.volume = volumeSlider.value;
+				if(nsCamera!= null)
+				{
+					nsCamera.soundTransform = volumeTransform;
+				}
+			}
+			///////////////////////////////////////////////////////
+			////TODO VIDEO below
+			/////////////////////////////////////////////////////////
+	
+			
+			protected function mainResizeHandler(event:ResizeEvent):void
+			{
+				panel.validateDisplayList();
+				panel.validateNow();
+				
+				
+				//var ratio:double = this.videoDesktopWidth / this.videoDesktopHeight;
+				if(this.vidDesktop != null && this.vidCamera != null)
+				{
+					this.recalculatePositionOfCamera();
+					
+					//TODO zachownie ratio przy zmianie
+					//this.vidDesktop.height = 0.8 * this.panel.height;
+					//this.vidDesktop.width = 0.8 * this.panel.width;
+					
+					/*if(this.originalHeight > (0.8 * this.panel.height))
+					{
+						this.vidDesktop.height = 0.8 * this.parentApplication.height;	
+						this.vidDesktop.width = 0.8 * this.panel.width;
+						this.uic.height = this.parentApplication.height;
+					}
+					else
+					{
+						this.vidDesktop.height = this.originalHeight;
+						this.vidDesktop.width = this.originalWidth;	
+						this.uic.height = this.vidDesktop.height + this.vidCamera.height;
+					}*/
+					
+					this.vidDesktop.height = this.vidDesktop.width * 0.75;
+					this.vidDesktop.width =  0.85 * this.panel.width;	
+					this.uic.height = this.vidDesktop.height + this.vidCamera.height;
+					
+					this.vidDesktop.x = 0.1 * this.panel.width;
+					this.vidDesktop.y = 0.1 * this.panel.height
+					this.vidCamera.x = positionCameraX; 
+					this.vidCamera.y = positionCameraY;
+					
+					this.XMLtree1.height = this.vidDesktop.height;
+					this.XMLtree1.y = this.vidDesktop.y;
+					//trace(this.XMLtree1.y);
+					this.validateDisplayList();
+					this.validateNow();
+				}
+			}
+			
+			private function recalculatePositionOfCamera():void
+			{
+				switch(this.cameraLocalization)
+				{
+					case CameraLocation.UPPER_LEFT:
+						positionCameraX = 0.05 * this.panel.width;
+						positionCameraY = 0.05 * this.panel.height;
+						break;
+					
+					case CameraLocation.LOWER_LEFT:
+						positionCameraX = 0.05 * this.panel.width;
+						positionCameraY = (0.95 * this.panel.height) - this.vidCamera.height; 
+						break;
+					
+					case CameraLocation.UPPER_RIGHT:
+						positionCameraX = (0.95 * this.panel.width) - this.vidCamera.width;
+						positionCameraY = 0.05 * this.panel.height; 
+						break;
+					
+					case CameraLocation.LOWER_RIGHT:
+						positionCameraX = (0.95 * this.panel.width) - this.vidCamera.width;
+						positionCameraY = (0.95 * this.panel.height) - this.vidCamera.height; 
+						break;
+					
+					default:
+						//same as UPPER_LEFT
+						positionCameraX = 0.05 * this.panel.width;
+						positionCameraY = 0.05 * this.panel.height;
+						break;
+				}
+			}
+			
+			
+			
+			
+			protected function cameraLocationChanged(event:ItemClickEvent):void
+			{
+				switch(event.index)
+				{
+					case 0:
+						this.cameraLocalization = CameraLocation.UPPER_LEFT;
+						break;
+					
+					case 1:
+						this.cameraLocalization = CameraLocation.LOWER_LEFT;
+						break;
+					
+					case 2:
+						this.cameraLocalization = CameraLocation.UPPER_RIGHT;
+						break;
+					
+					case 3:
+						this.cameraLocalization = CameraLocation.LOWER_RIGHT;
+						break;
+					
+					default:
+						this.cameraLocalization = CameraLocation.UPPER_LEFT;
+						break;
+				}
+				
+				this.mainResizeHandler(new ResizeEvent("Resize event"));
+			}
+						
+			
+			protected function mute_btn_clickHandler(event:MouseEvent):void
+			{
+				if(this.mute_btn.label == "Mute")
+				{
+					this.mute_btn.label = "Muted";
+					this.rememberVolume = this.volumeSlider.value;
+					this.volumeSlider.value = 0;
+				}
+				else
+				{
+					this.mute_btn.label = "Mute";
+					this.volumeSlider.value = this.rememberVolume;
+				}
+				
+				volumeChangeHandler(new Event("event"));
+			}
+			
+			
+			protected function fullscreen_btn_clickHandler(event:MouseEvent):void
+			{
+				if(this.fullscreen_btn.label == "Full Screen")
+				{
+					this.fullscreen_btn.label = "Minimize";
+				}
+				else
+				{
+					this.fullscreen_btn.label = "Full Screen";
+				}
+				
+				dispatchEvent(new Event("changeSize"));
+			}
+			
+			
+			protected function removeHandler(event:FlexEvent):void
+			{
+				trace("REMOVE");
+			}
+			
+			
+			////FROM LIVE VIDEO
+			import mx.controls.ProgressBarMode;
+			import mx.core.FlexGlobals;
+			
+			/**
+			 * The amount of time between calls to update the playhead timer, in 
+			 * milliseconds.
+			 */
+			private const PLAYHEAD_UPDATE_INTERVAL_MS:uint = 10;
+			
+			/**
+			 * The client object to use for the NetStream object.
+			 */
+			private var clientCamera:Object;
+			private var clientDesktop:Object;
+			
+			/**
+			 * The index of the currently playing video.
+			 */
+			public var videoPathCamera:String = "rec_5_CAMERA.flv";
+			public var videoPathDesktop:String = "rec_6_DESKTOP.flv";
+			
+			/**
+			 * A copy of the current video's metadata object.
+			 */
+			private var metaCamera:Object;
+			private var metaDesktop:Object;
+			private var meta:Object;
+			private var t:Timer;
+			private var uldrCamera:URLLoader;
+			private var uldrDesktop:URLLoader;
+			//private var videosXML:XMLList;
+			
+			
+			/**
+			 * Constructor
+			 */
+			private function initApp():void {
+				// Initialize the uldr variable which will be used to load the external 
+				// playlist XML file.
+				//main();
+			}
+			
+			/**
+			 * The main application.
+			 */
+			private function main():void {
+				XMLtree1.addEventListener("dataChanged",dataChangedHandler);				
+				this.XMLtree1.dispatchEvent(new Event("dataChanged"));
+				this.currentState = "shownCheckpoints";
+				
+				///////////////////
+				//INIT DESKTOP VIDEO
+				///////////
+				
+				clientDesktop = new Object();
+				clientDesktop.onMetaData = metadataHandlerDesktop;
+				
+				ncDesktop = new NetConnection();
+				ncDesktop.connect(null);
+				
+				// Initialize the NetSteam object, add a listener for the netStatus 
+				// event, and set the client for the NetStream.
+				nsDesktop = new NetStream(ncDesktop);
+				//nsDesktop.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				nsDesktop.client = clientDesktop;
+				
+				// Initialize the Video object, attach the NetStram, and add the Video
+				// object to the display list.
+				vidDesktop = new Video();
+				vidDesktop.attachNetStream(nsDesktop);
+				uic.addChild(vidDesktop);
+				
+				
+				///////////////
+				////INIT CAMERA VIDEO
+				/////////
+				
+				volumeTransform = new SoundTransform();
+				
+				// Create the client object for the NetStream, and set up a callback
+				// handler for the onMetaData event.
+				clientCamera = new Object();
+				clientCamera.onMetaData = metadataHandlerCamera;
+				
+				ncCamera = new NetConnection();
+				ncCamera.connect(null);
+				
+				// Initialize the NetSteam object, add a listener for the netStatus 
+				// event, and set the client for the NetStream.
+				nsCamera = new NetStream(ncCamera);
+				nsCamera.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+				nsCamera.client = clientCamera;
+				
+				// Initialize the Video object, attach the NetStram, and add the Video
+				// object to the display list.
+				vidCamera = new Video();
+				vidCamera.attachNetStream(nsCamera);
+				uic.addChild(vidCamera);
+				
+				
+				
+				
+				// Initialize the Timer object and set the delay to
+				// PLAYHEAD_UPDATE_INTERVAL_MS milliseconds. 
+				t = new Timer(PLAYHEAD_UPDATE_INTERVAL_MS);
+				t.addEventListener(TimerEvent.TIMER, timerHandler);
+				
+				// Configure the positionBar ProgressBar instance and set the mode to
+				// MANUAL. Progress  bar values will be explicitly set using the
+				// setProgress() method.
+				positionBar.mode = ProgressBarMode.MANUAL;
+				
+				// Configure the volumeSlider Slider component instance. The maximum 
+				// value is set to 1 because the volume in the SoundTransform object 
+				// is set to a number between 0 and 1. The snapInterval and tickInterval 
+				// properties are set to 0.1 which allows users to set the volume to 
+				// 0, 0.1 - 0.9, 1.0 which allows users to increment or decrement the 
+				// volume by 10%.
+				volumeSlider.value = volumeTransform.volume;
+				volumeSlider.minimum = 0;
+				volumeSlider.maximum = 1;
+				volumeSlider.snapInterval = 0.1;
+				volumeSlider.tickInterval = volumeSlider.snapInterval;
+				
+				// Setting the liveDragging property to true causes the Slider 
+				// instance's change event to be dispatched whenever the slider is 
+				// moved, rather than when the user releases the slider thumb.
+				volumeSlider.liveDragging = true;
+				volumeSlider.addEventListener(Event.CHANGE, volumeChangeHandler);
+				
+				// Configure the various Button instances. Each Button instance uses 
+				// the same click handler.
+				playButton.addEventListener(MouseEvent.CLICK, buttonClickHandler);
+				pauseButton.addEventListener(MouseEvent.CLICK, buttonClickHandler);
+				stopButton.addEventListener(MouseEvent.CLICK, buttonClickHandler);
+				
+				// Begin playback of the first video.
+				t.start();
+				playVideo();
+				this.mainResizeHandler(new ResizeEvent("Resize event"));
+			}
+			
+			
+			/**
+			 * Event listener for the ns object. Called when the net stream's status 
+			 * changes.
+			 */
+			private function netStatusHandler(event:NetStatusEvent):void {
+				try {
+					switch (event.info.code) {
+						case "NetStream.Play.Start" :
+							// If the current code is Start, start the timer object.
+							
+							break;
+						case "NetStream.Play.StreamNotFound" :
+						case "NetStream.Play.Stop" :
+							// If the current code is Stop or StreamNotFound, stop 
+							// the timer object and play the next video in the playlist.
+							break;
+					}
+				} catch (error:TypeError) {
+					// Ignore any errors.
+				}
+			}
+			
+			/**
+			 * Event listener for the ns object's client property. This method is called 
+			 * when the net stream object receives metadata information for a video.
+			 */
+			private function metadataHandlerDesktop(metadataObj:Object):void {
+				// Store the metadata information in the meta object.
+				metaDesktop = metadataObj;
+				
+				checkMeta();
+			}
+			
+			private function metadataHandlerCamera(metadataObj:Object):void {
+				// Store the metadata information in the meta object.
+				metaCamera = metadataObj;
+				// Resize the Video instance on the display list with the video's width 
+				// and height from the metadata object.
+				videoCameraWidth = metaCamera.width;
+				videoCameraHeight = metaCamera.height;
+				
+				checkMeta();
+			}
+			
+			
+			/**
+			 * Function will check metadata for camera and desktop and use only duration for shorter one
+			 * */
+			private function checkMeta()
+			{
+				if(metaDesktop!=null && metaCamera != null)
+				{
+					if (metaDesktop.duration < metaCamera.duration)
+					{
+						meta = metaDesktop
+					}
+					else
+					{
+						meta = metaCamera;
+					}
+				}
+			}
+			
+			/**
+			 * Ustawiamy ścieżkę do video
+			 */
+			public function startVideo():void
+			{
+				//videoPath = path;
+				main();
+			}
+			
+			
+			/**
+			 * Play the currently selected video.
+			 */
+			private function playVideo():void {
+				if(this.videoPathCamera != '' && this.videoPathDesktop != '')
+				{
+					var urlCamera:String = FlexGlobals.topLevelApplication.getVideoPath() + this.videoPathCamera;
+					nsCamera.play(urlCamera);
+				//	nsCamera.pause();
+					
+					var urlDesktop:String = FlexGlobals.topLevelApplication.getVideoPath() + this.videoPathDesktop;
+					nsDesktop.play(urlDesktop);
+					//nsDesktop.pause();
+				}
+			}
+			
+			
+			/**
+			 * Click handler for each of the video playback buttons.
+			 */
+			private function buttonClickHandler(event:MouseEvent):void {
+				// Use a switch statement to determine which button was clicked.
+				switch (event.currentTarget) {
+					case playButton :
+						// If the play button was clicked, resume the video playback. 
+						// If the video was already playing, this has no effect.
+						if(nsCamera !=null && nsDesktop!= null)
+						{
+							nsCamera.resume();
+							nsDesktop.resume();
+						}
+						break;
+					case pauseButton :
+						// If the pause button was clicked, pause the video playback. 
+						// If the video was already playing, the video will be paused. 
+						// If the video was already paused, the video will be resumed.
+						if(nsCamera!=null && nsDesktop!= null)
+						{
+							nsCamera.togglePause();
+							nsDesktop.togglePause();
+						}
+						break;
+					case stopButton :
+						// If the stop button was clicked, pause the video playback 
+						// and reset the playhead back to the beginning of the video.
+						nsCamera.pause();
+						nsDesktop.pause();
+						nsCamera.seek(0);
+						nsDesktop.seek(0);
+						t = new Timer(PLAYHEAD_UPDATE_INTERVAL_MS);
+						t.addEventListener(TimerEvent.TIMER, timerHandler);
+						positionBar.setProgress(0, meta.duration);
+						positionLabel.text = 0 + " of " + meta.duration.toFixed(1) + " seconds";	
+						break;
+				}
+			}
+			
+			/**
+			 * Event handler for the timer object. This method is called every 
+			 * PLAYHEAD_UPDATE_INTERVAL_MS milliseconds as long as the timer is running.
+			 */
+			private function timerHandler(event:TimerEvent):void {
+				try {
+					// Update the progress bar and label based on the amount of video
+					// that has played back.
+					positionBar.setProgress(nsCamera.time, meta.duration);
+					positionLabel.text = nsCamera.time.toFixed(1) + " of " + meta.duration.toFixed(1) + " seconds";
+					//jesli skończyliśmy odtwarzać video to zatrzymujemy
+					if (nsCamera.time.toFixed(1) == meta.duration.toFixed(1))
+					{
+						stopButton.dispatchEvent(new MouseEvent(MouseEvent.CLICK, true, false));
+					}
+				} catch (error:Error) {
+					// Ignore this error.
+				}
+			}
+			
+			
+			private function setVideoTime(time:Number):void
+			{
+				if(nsCamera != null && nsDesktop!= null)
+				{
+					if(time<=meta.duration)
+					{
+						nsCamera.seek(time);
+						nsDesktop.seek(time);
+						positionBar.setProgress(time, meta.duration);
+					}
+				}
+			}		
+			
+			protected function positionBar_clickHandler(event:MouseEvent):void
+			{
+					var zm:Number = (event.localX / positionBar.width) * positionBar.maximum;	
+					this.setVideoTime(zm);
+			}
+			
+
+			protected function XMLtree1_changeHandler(event:ListEvent):void
+			{
+				this.dispatchEvent(new Event("selectedChanged"));
+				if(!isNaN(this.XMLtree1.selectedItem.@time))
+				{
+					this.setVideoTime(this.XMLtree1.selectedItem.@time);
+				}
+				
+			}
+
+			protected function XMLtree1_mouseWheelHandler(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				event.stopPropagation();
+			}
+
+			
+			private function treeLabel(item:XML):String 
+			{
+				var label:String;
+				label = item.@time + " : " + item.@name;
+				
+				return label;
+			}
+			
+			private function dataChangedHandler(event:Event):void
+			{
+				sortList();
+			}
+			
+			private function sortList():void
+			{
+				var xmlCollection:XMLListCollection = TreeXML;
+				var s:Sort = new Sort();
+				var field:SortField = new SortField();
+				field.name="@time";
+				field.descending = false;
+				field.numeric = true;
+				s.fields= [field]; // null signals to use the value of the element itself for sorting
+				xmlCollection.sort = s;
+				xmlCollection.refresh(); // remember to refresh the collection
+				
+				TreeXML = xmlCollection;
+			//	list = this.TreeXML.source;
+				
+				this.XMLtree1.dataProvider = TreeXML;
+			}
+			
+			public function deleteSelected()
+			{
+				if(this.XMLtree1.selectedIndex>-1)
+				{
+					this.TreeXML.removeItemAt(this.XMLtree1.selectedIndex);
+				}
+			}
+			
+			public function editCheckpointAtIndex(newName:String,newTime:String,index:int)
+			{
+				if(index > -1 && index < TreeXML.length)
+				{
+					this.TreeXML[index].@name = newName;
+					this.TreeXML[index].@time = newTime;
+				}
+				
+				this.sortList();
+				Alert.show("Edit complete","Complete");
+			}
+
+
+			protected function hideShow_clickHandler(event:MouseEvent):void
+			{
+				switch(this.hideShow.label)
+				{
+					case "<":
+						this.currentState = "shownCheckpoints";
+					break;
+					case ">":
+						this.currentState = "hiddenCheckpoints";
+					break;
+					default:
+					break;
+				}
+				
+				this.validateDisplayList();
+				this.validateNow();
+				
+				this.mainResizeHandler(new ResizeEvent("resize"));
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:HGroup width="100%">
+	
+		<mx:Panel width.shownCheckpoints="80%" width.hiddenCheckpoints="95%" height="100%" id="panel" verticalAlign="middle" horizontalAlign="center" headerHeight="0">
+			<mx:UIComponent id="uic" width="100%" height="100%"  />			
+		</mx:Panel >
+		
+		<s:Button id="hideShow" height="100%" 
+				  width="30"
+				  label.hiddenCheckpoints="&lt;"
+				  label.shownCheckpoints="&gt;"
+				  click="hideShow_clickHandler(event)"/>
+		
+		<mx:Tree id="XMLtree1" 
+				 width.shownCheckpoints="20%"
+				 width.hiddenCheckpoints="0"
+				 includeInLayout.hiddenCheckpoints="false"
+				 includeInLayout.shownCheckpoints="true"
+				 visible.hiddenCheckpoints="false"
+				 visible.shownCheckpoints="true"
+				 labelFunction="treeLabel"
+				 change="XMLtree1_changeHandler(event)"
+				 			 
+				 mouseWheel="XMLtree1_mouseWheelHandler(event)"
+				 />
+	</s:HGroup>
+	
+	<s:HGroup width="100%" textAlign="center" horizontalAlign="center">
+		<mx:Button id="playButton"  label="Play" click="buttonClickHandler"/>
+		<mx:Button id="pauseButton"   label="Pause" click="buttonClickHandler"/>
+		<mx:Button id="stopButton"  label="Stop" click="buttonClickHandler"/>
+	</s:HGroup>
+	<s:HGroup>
+		<mx:ToggleButtonBar id="cameraLocation" toolTip="Camera Location" horizontalGap="5" selectedIndex="0" itemClick="cameraLocationChanged(event)">
+			<mx:dataProvider>
+				<fx:String>Upper-Left</fx:String>
+				<fx:String>Lower-Left</fx:String>
+				<fx:String>Upper-Right</fx:String>
+				<fx:String>Lower-Right</fx:String>
+			</mx:dataProvider>
+		</mx:ToggleButtonBar>
+	</s:HGroup>
+	
+	<s:HGroup width="100%" horizontalAlign="center">
+		<s:Label id="volume" text="Volume:" />
+		<mx:HSlider id="volumeSlider"  />
+	
+		<mx:Button id="mute_btn" label="Mute" click="mute_btn_clickHandler(event)"/>
+		<mx:Button id="fullscreen_btn" label="Full Screen" click="fullscreen_btn_clickHandler(event)"/>
+	</s:HGroup>
+	
+	<s:HGroup width="100%" horizontalAlign="center">
+		<mx:ProgressBar id="positionBar"  label="" click="positionBar_clickHandler(event)"/>
+		<mx:Label id="positionLabel" />
+	</s:HGroup>
+</s:VGroup>

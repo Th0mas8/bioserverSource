@@ -219,13 +219,19 @@
 					case playButton :
 						// If the play button was clicked, resume the video playback. 
 						// If the video was already playing, this has no effect.
-						ns.resume();
+						if(ns!=null)
+						{
+							ns.resume();
+						}
 						break;
 					case pauseButton :
 						// If the pause button was clicked, pause the video playback. 
 						// If the video was already playing, the video will be paused. 
 						// If the video was already paused, the video will be resumed.
-						ns.togglePause();
+						if(ns!=null)
+						{
+							ns.togglePause();
+						}
 						break;
 					case stopButton :
 						// If the stop button was clicked, pause the video playback 
@@ -263,9 +269,12 @@
 			
 			protected function positionBar_clickHandler(event:MouseEvent):void
 			{
-				var zm:Number = (event.localX / positionBar.width) * positionBar.maximum;
-				ns.seek(zm);
-				positionBar.setProgress(zm, meta.duration);
+				if(ns=null)
+				{
+						var zm:Number = (event.localX / positionBar.width) * positionBar.maximum;
+						ns.seek(zm);
+						positionBar.setProgress(zm, meta.duration);
+				}
 			}
 			
 		]]>

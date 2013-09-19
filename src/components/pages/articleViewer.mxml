@@ -62,6 +62,7 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 			import components.pages.admin_subpage.Video.VideoStreamMJPEG;
 			import components.pages.admin_subpage.Video.Video_stream;
 			import components.pages.admin_subpage.Video.liveVideo;
+			import components.pages.admin_subpage.Video.liveVideoArchive;
 			import components.pages.admin_subpage.email.contactEmail;
 			import components.pages.admin_subpage.facebook.newsViewer;
 			import components.pages.admin_subpage.gallery.galleryItem;
@@ -403,7 +404,7 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 							CurrentLiveVideo.addEventListener("changeSize", onChangeSize);
 							
 							var URLisSet:String = seg.tresc.main.URL.toString();
-							if(URLisSet != "")
+							if(URLisSet == "")
 							{
 								Alert.show("No data set in live Video", "Error");
 							}
@@ -420,6 +421,27 @@ Komponent odpowiedzialny za wyświetlenie treści w danym artykule, wczytanie po
 							}	
 							elements.addElement(CurrentLiveVideo);
 							break;
+						case "liveVideoArchive":
+							this.percentHeight = 100;
+							var CurrentLiveArchiveVideo:liveVideoArchive = new liveVideoArchive();
+							CurrentLiveArchiveVideo.addEventListener("changeSize", onChangeSize);
+							
+							var DataisSet:String = seg.tresc.main.@cameraPath.toString();
+							if(DataisSet == "")
+							{
+								Alert.show("No data set in live Video", "Error");
+							}
+							else
+							{ 
+								CurrentLiveArchiveVideo.videoPathCamera = seg.tresc.main.@cameraPath;
+								CurrentLiveArchiveVideo.videoPathDesktop = seg.tresc.main.@desktopPath;
+								
+								CurrentLiveArchiveVideo.TreeXML = new XMLListCollection(seg.tresc.main.checkpoint);
+								CurrentLiveArchiveVideo.XMLtree1.dispatchEvent(new Event("dataChanged"));
+							}	
+							elements.addElement(CurrentLiveArchiveVideo);
+							break;
+						
 						default:
 							Alert.show("Unknown kind of article to show: " + seg.rodzaj, "Error");
 							break;
